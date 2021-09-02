@@ -1,0 +1,20 @@
+{
+  "name": "gbj_appwifi",
+  "keywords": "application",
+  "description": "Library executes connection to a WiFi network.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrkaleArduinoLib/gbj_appwifi.git"
+  },
+  "version": "1.0.0",
+  "frameworks": "arduino",
+  "platforms": [
+    "espressif8266",
+    "espressif32"
+  ],
+  "dependencies": {
+    "mrkaleArduinoLib/gbj_appbase": "*",
+    "mrkaleArduinoLib/gbj_serial_debug": "*",
+    "mrkaleArduinoLib/gbj_timer": "*"
+  }
+}
