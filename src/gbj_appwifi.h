@@ -39,6 +39,25 @@ class gbj_appwifi : gbj_appbase
 public:
   static const String VERSION;
 
+  /*
+    Constructor.
+
+    DESCRIPTION:
+    Constructor creates the class instance object and sets credentials for wifi.
+
+    PARAMETERS:
+    ssid - The name of a wifi network to connect to.
+      - Data type: constant string
+      - Default value: none
+      - Limited range: none
+
+    pass - The passphrase for a wifi network.
+      - Data type: constant string
+      - Default value: none
+      - Limited range: none
+
+    RETURN: object
+  */
   inline gbj_appwifi(const char *ssid, const char *pass)
   {
     _ssid = ssid;
@@ -73,14 +92,14 @@ public:
   inline bool isConnected() { return WiFi.isConnected(); }
 
 private:
-  const char *_ssid;
-  const char *_pass;
   enum Timing : unsigned int
   {
     PERIOD_ATTEMPS = 20,
     PERIOD_CONNECT = 500,
     PERIOD_CHECK = 7345, // Avoid useless collisions
   };
+  const char *_ssid;
+  const char *_pass;
   gbj_timer *_timer;
   ResultCodes connect();
 };

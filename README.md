@@ -11,7 +11,7 @@ This is an application library, wich is used usually as a project library for pa
 
 - **gbj\_appbase**: Parent library for all application libraries loaded from the file `gbj_appbase.h`.
 - **gbj\_timer**: Library for executing internal timer within an instance object loaded from the file `gbj_timer.h`.
-- **gbj\_serial\_debug**: Auxilliary library for debug serial output loaded from the file `gbj_serial_debug.h`.
+- **gbj\_serial\_debug**: Auxilliary library for debug serial output loaded from the file `gbj_serial_debug.h`. It enables to exclude serial outputs from final compilation.
 
 #### Particle platform
 - **Particle.h**: Includes alternative (C++) data type definitions.
@@ -52,7 +52,8 @@ Other constants and enumerations are inherited from the parent library.
 
 #### Description
 Constructor creates the class instance object and initiates internal resources.
-- Constructor creates one internal timer without a timer handler.
+- It inputs credentials for a wifi network.
+- It creates one internal timer without a timer handler.
 
 #### Syntax
     gbj_appwifi(const char *ssid, const char *pass);
@@ -62,7 +63,7 @@ Constructor creates the class instance object and initiates internal resources.
   - *Valid values*: Constant pointer to string
   - *Default value*: none
 
-- **pass**: Pointer to the password for the wifi network.
+- **pass**: Pointer to the passphrase for the wifi network.
   - *Valid values*: Constant pointer to string
   - *Default value*: none
 
