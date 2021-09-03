@@ -59,9 +59,11 @@ Constructor creates the class instance object and initiates internal resources.
     gbj_appwifi(const char *ssid, const char *pass);
 
 #### Parameters
+
 - **ssid**: Pointer to the name of the wifi network to connect to.
   - *Valid values*: Constant pointer to string
   - *Default value*: none
+
 
 - **pass**: Pointer to the passphrase for the wifi network.
   - *Valid values*: Constant pointer to string
@@ -80,7 +82,7 @@ Object performing connection and reconnection to the wifi network.
 The execution method, which should be called frequently, usually in the loop function of a sketch.
 - The method connects to the wifi network at the very first calling it.
 - At the end of each timer period the method checks the connection to the wifi network and reconnects to it if neccesary.
-- If the serial connection is active the library outputs flow of the connection and at success lists basic parameters of the connection to wifi.
+- If the serial connection is active, the library outputs flow of the connection and at success lists basic parameters of the connection to wifi.
 
 #### Syntax
 	void run();
@@ -94,7 +96,7 @@ None
 #### Example
 Calling methods in the sketch loop.
 ```cpp
-gbj_appwifi wifi = gbj_wifi("MySSID", "MyPassword");
+gbj_appwifi wifi = gbj_appwifi("MySSID", "MyPassword");
 
 void loop()
 {
@@ -109,15 +111,15 @@ void loop()
 ## setPeriod()
 
 #### Description
-The method sets a new interna timer period. It allows to dynamically change a frequency of wifi connection checking.
+The method sets a new internal timer period. It allows to dynamically change a frequency of wifi connection checking.
 
 #### Syntax
     void setPeriod(unsigned long period)
 
 #### Parameters
-* **period**: Duration of a repeating interval in milliseconds.
-  * *Valid values*: 0 ~ 2^32 * 1
-  * *Default value*: none
+- **period**: Duration of a repeating interval in milliseconds.
+  - *Valid values*: 0 ~ 2^32 * 1
+  - *Default value*: none
 
 #### Returns
 None
