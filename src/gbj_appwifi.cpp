@@ -5,6 +5,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
 {
   if (isConnected())
   {
+    SERIAL_TITLE("Connected");
     return setLastResult();
   }
   // WiFi fix: https://github.com/esp8266/Arduino/issues/2186
@@ -13,7 +14,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   WiFi.mode(WIFI_STA);
   WiFi.begin(_ssid, _pass);
   SERIAL_DELIM
-  SERIAL_ACTION("gbj_appwifi::Connecting to AP...");
+  SERIAL_ACTION("Connecting to AP...");
   uint8_t counter = Timing::PERIOD_ATTEMPS;
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -28,10 +29,10 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     }
     SERIAL_DOT;
   }
-  SERIAL_TITLE("Connected");
-  SERIAL_VALUE("gbj_appwifi::SSID", _ssid);
-  SERIAL_VALUE("gbj_appwifi::IP", WiFi.localIP());
-  SERIAL_VALUE("gbj_appwifi::RSSI (dBm)", WiFi.RSSI());
+  SERIAL_ACTION_END("Connected");
+  SERIAL_VALUE("SSID", _ssid);
+  SERIAL_VALUE("IP", WiFi.localIP());
+  SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
   SERIAL_DELIM;
   return setLastResult();
 }

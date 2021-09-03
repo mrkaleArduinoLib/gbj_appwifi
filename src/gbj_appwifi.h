@@ -18,6 +18,9 @@
 #ifndef GBJ_APPWIFI_H
 #define GBJ_APPWIFI_H
 
+#undef SERIAL_PREFIX
+#define SERIAL_PREFIX "gbj_appwifi"
+
 #if defined(__AVR__)
   #include <Arduino.h>
   #include <inttypes.h>
