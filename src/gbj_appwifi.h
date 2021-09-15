@@ -18,9 +18,6 @@
 #ifndef GBJ_APPWIFI_H
 #define GBJ_APPWIFI_H
 
-#undef SERIAL_PREFIX
-#define SERIAL_PREFIX "gbj_appwifi"
-
 #if defined(__AVR__)
   #include <Arduino.h>
   #include <inttypes.h>
@@ -36,6 +33,9 @@
 #include "gbj_appbase.h"
 #include "gbj_serial_debug.h"
 #include "gbj_timer.h"
+
+#undef SERIAL_PREFIX
+#define SERIAL_PREFIX "gbj_appwifi"
 
 class gbj_appwifi : gbj_appbase
 {
