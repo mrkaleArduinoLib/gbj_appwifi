@@ -94,7 +94,7 @@ None
 None
 
 #### Example
-Calling methods in the sketch loop.
+Calling method in the sketch loop.
 ```cpp
 gbj_appwifi wifi = gbj_appwifi("MySSID", "MyPassword");
 

@@ -24,7 +24,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     }
     else
     {
-      SERIAL_TITLE("Timeout");
+      SERIAL_ACTION_END("Timeout");
       return setLastResult(ResultCodes::ERROR_CONNECT);
     }
     SERIAL_DOT;
