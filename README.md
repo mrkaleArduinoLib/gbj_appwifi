@@ -56,7 +56,7 @@ Constructor creates the class instance object and initiates internal resources.
 - It creates one internal timer without a timer handler.
 
 #### Syntax
-    gbj_appwifi(const char *ssid, const char *pass);
+    gbj_appwifi(const char *ssid, const char *pass, const char *hostname);
 
 #### Parameters
 
@@ -66,6 +66,11 @@ Constructor creates the class instance object and initiates internal resources.
 
 
 - **pass**: Pointer to the passphrase for the wifi network.
+  - *Valid values*: Constant pointer to string
+  - *Default value*: none
+
+
+- **hostname**: Pointer to the hostname for a device on the network.
   - *Valid values*: Constant pointer to string
   - *Default value*: none
 

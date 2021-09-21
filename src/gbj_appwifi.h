@@ -59,12 +59,18 @@ public:
       - Default value: none
       - Limited range: none
 
+    hostname - The hostname for a device on the network.
+      - Data type: constant string
+      - Default value: none
+      - Limited range: none
+
     RETURN: object
   */
-  inline gbj_appwifi(const char *ssid, const char *pass)
+  inline gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
   {
     _ssid = ssid;
     _pass = pass;
+    _hostname = hostname;
     _timer = new gbj_timer(Timing::PERIOD_CHECK, 0, true);
   }
 
@@ -103,6 +109,7 @@ private:
   };
   const char *_ssid;
   const char *_pass;
+  const char *_hostname;
   gbj_timer *_timer;
   ResultCodes connect();
 };

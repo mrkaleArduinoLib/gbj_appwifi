@@ -12,6 +12,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // WiFi.persistent(false);
   // WiFi.mode(WIFI_OFF); // Try this only if device cannot connect to AP
   WiFi.mode(WIFI_STA);
+  WiFi.hostname(_hostname);
   WiFi.begin(_ssid, _pass);
   SERIAL_DELIM
   SERIAL_ACTION("Connecting to AP...");
@@ -32,6 +33,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   SERIAL_ACTION_END("Connected");
   SERIAL_VALUE("SSID", _ssid);
   SERIAL_VALUE("IP", WiFi.localIP());
+  SERIAL_VALUE("Hostname", _hostname);
   SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
   SERIAL_DELIM;
   return setLastResult();
