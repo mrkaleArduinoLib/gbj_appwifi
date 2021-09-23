@@ -18,10 +18,7 @@
 #ifndef GBJ_APPWIFI_H
 #define GBJ_APPWIFI_H
 
-#if defined(__AVR__)
-  #include <Arduino.h>
-  #include <inttypes.h>
-#elif defined(ESP8266)
+#if defined(ESP8266)
   #include <Arduino.h>
   #include <ESP8266WiFi.h>
 #elif defined(ESP32)
@@ -29,6 +26,8 @@
   #include <WiFi.h>
 #elif defined(PARTICLE)
   #include <Particle.h>
+#else
+  #error !!! Only platforms with WiFi are suppored !!!
 #endif
 #include "gbj_appbase.h"
 #include "gbj_serial_debug.h"
