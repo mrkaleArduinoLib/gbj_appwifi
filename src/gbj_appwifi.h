@@ -104,7 +104,7 @@ private:
   {
     PERIOD_ATTEMPS = 20,
     PERIOD_CONNECT = 500,
-    PERIOD_CHECK = 7345, // Avoid useless collisions
+    PERIOD_CHECK = 7349, // Prime number - Avoid useless collisions
   };
   const char *_ssid;
   const char *_pass;
