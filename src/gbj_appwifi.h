@@ -97,6 +97,7 @@ public:
 
   // Getters
   inline unsigned long getPeriod() { return _timer->getPeriod(); };
+  inline const char* getHostname() { return _hostname; };
   inline bool isConnected() { return WiFi.isConnected(); }
 
 private:

@@ -13,6 +13,7 @@ gbj_appwifi	KEYWORD1
 run	KEYWORD2
 setPeriod	KEYWORD2
 getPeriod	KEYWORD2
+getHostname	KEYWORD2
 isConnected	KEYWORD2
 
 #######################################

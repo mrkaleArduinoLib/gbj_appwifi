@@ -46,6 +46,7 @@ Other constants and enumerations are inherited from the parent library.
 - [run()](#run)
 - [setPeriod()](#period)
 - [getPeriod()](#period)
+- [getHostname()](#getHostname)
 - [isConnected()](#isConnected)
 
 
@@ -58,7 +59,7 @@ Constructor creates the class instance object and initiates internal resources.
 - It creates one internal timer without a timer handler.
 
 #### Syntax
-    gbj_appwifi(const char *ssid, const char *pass, const char *hostname);
+    gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
 
 #### Parameters
 
@@ -105,6 +106,25 @@ The methods are just straitforward implementation of the virual methods from the
 [Back to interface](#interface)
 
 
+<a id="getHostname"></a>
+
+## getHostname()
+
+#### Description
+The method returns the hostname of the device connected to the wifi network. It might be used as a device's attribute for IoT platform.
+
+#### Syntax
+    const char* getHostname()
+
+#### Parameters
+None
+
+#### Returns
+A pointer to the constant string with hostname of the device.
+
+[Back to interface](#interface)
+
+
 <a id="isConnected"></a>
 
 ## isConnected()
@@ -113,7 +133,7 @@ The methods are just straitforward implementation of the virual methods from the
 The method returns a flag whether the device is connected to the wifi.
 
 #### Syntax
-    bool isConnected();
+    bool isConnected()
 
 #### Parameters
 None
