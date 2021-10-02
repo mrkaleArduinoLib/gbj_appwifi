@@ -5,6 +5,7 @@ This is an application library, which is used usually as a project library for p
 
 - Library specifies (inherits from) the application `gbj_appbase` library.
 - Library utilizes error handling from the parent class.
+- Library activates multicast DNS right after wifi connection.
 
 
 <a id="dependency"></a>
@@ -18,10 +19,12 @@ This is an application library, which is used usually as a project library for p
 #### Espressif ESP8266 platform
 - **Arduino.h**: Main include file for the Arduino platform.
 - **ESP8266WiFi.h**: Main include file for the wifi connection.
+- **ESP8266mDNS.h**: Main include file for the mDNS.
 
 #### Espressif ESP32 platform
 - **Arduino.h**: Main include file for the Arduino platform.
 - **WiFi.h**: Main include file for the wifi connection.
+- **ESPmDNS.h**: Main include file for the mDNS.
 
 #### Particle platform
 - **Particle.h**: Includes alternative (C++) data type definitions.
@@ -73,7 +76,7 @@ Constructor creates the class instance object and initiates internal resources.
   - *Default value*: none
 
 
-- **hostname**: Pointer to the hostname for a device on the network.
+- **hostname**: Pointer to the hostname for a device on the network as well as for the mDNS domain.
   - *Valid values*: Constant pointer to string
   - *Default value*: none
 
@@ -111,7 +114,7 @@ The methods are just straitforward implementation of the virual methods from the
 ## getHostname()
 
 #### Description
-The method returns the hostname of the device connected to the wifi network. It might be used as a device's attribute for IoT platform.
+The method returns the hostname of the device connected to the wifi network. It might be used as a device's attribute for the IoT platform.
 
 #### Syntax
     const char* getHostname()

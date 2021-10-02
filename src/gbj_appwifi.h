@@ -4,7 +4,7 @@
 
   DESCRIPTION:
   Application library for processing connection to an access point over WiFi.
-  It is a substitution for project libraries, which should be same for the wifi.
+  - The library activates multicast DNS with the provided wifi hostname.
 
   LICENSE:
   This program is free software; you can redistribute it and/or modify
@@ -21,9 +21,10 @@
 #if defined(ESP8266)
   #include <Arduino.h>
   #include <ESP8266WiFi.h>
+  #include <ESP8266mDNS.h>
 #elif defined(ESP32)
-  #include <Arduino.h>
   #include <WiFi.h>
+  #include <ESPmDNS.h>
 #elif defined(PARTICLE)
   #include <Particle.h>
 #else
@@ -58,7 +59,7 @@ public:
       - Default value: none
       - Limited range: none
 
-    hostname - The hostname for a device on the network.
+    hostname - The hostname for a device on the network and mDNS.
       - Data type: constant string
       - Default value: none
       - Limited range: none
@@ -89,6 +90,11 @@ public:
     if (_timer->run())
     {
       connect();
+      mdns();
+    }
+    if (isConnected())
+    {
+      MDNS.update();
     }
   }
 
@@ -97,7 +103,17 @@ public:
 
   // Getters
   inline unsigned long getPeriod() { return _timer->getPeriod(); };
-  inline const char* getHostname() { return _hostname; };
+  inline const char *getHostname()
+  {
+    if (isConnected())
+    {
+      return WiFi.getHostname();
+    }
+    else
+    {
+      return _hostname;
+    }
+  };
   inline bool isConnected() { return WiFi.isConnected(); }
 
 private:
@@ -112,6 +128,7 @@ private:
   const char *_hostname;
   gbj_timer *_timer;
   ResultCodes connect();
+  ResultCodes mdns();
 };
 
 #endif

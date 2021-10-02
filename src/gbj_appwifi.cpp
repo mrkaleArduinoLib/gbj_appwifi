@@ -14,7 +14,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   WiFi.mode(WIFI_STA);
   WiFi.hostname(_hostname);
   WiFi.begin(_ssid, _pass);
-  SERIAL_DELIM
+  SERIAL_DELIM;
   SERIAL_ACTION("Connecting to AP...");
   uint8_t counter = Timing::PERIOD_ATTEMPS;
   while (WiFi.status() != WL_CONNECTED)
@@ -37,4 +37,23 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
   SERIAL_DELIM;
   return setLastResult();
+}
+
+gbj_appwifi::ResultCodes gbj_appwifi::mdns()
+{
+  if (!isConnected() || MDNS.isRunning())
+  {
+    return setLastResult();
+  }
+  // Start multicast DNS
+  if (MDNS.begin(getHostname()))
+  {
+    SERIAL_TITLE("mDNS started");
+    return setLastResult();
+  }
+  else
+  {
+    SERIAL_TITLE("mDNS failed");
+    return setLastResult(ResultCodes::ERROR_CONNECT);
+  }
 }
