@@ -23,6 +23,7 @@
   #include <ESP8266WiFi.h>
   #include <ESP8266mDNS.h>
 #elif defined(ESP32)
+  #include <Arduino.h>
   #include <WiFi.h>
   #include <ESPmDNS.h>
 #elif defined(PARTICLE)
