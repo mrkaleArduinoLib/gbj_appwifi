@@ -53,12 +53,10 @@ public:
       - Data type: constant string
       - Default value: none
       - Limited range: none
-
     pass - The passphrase for a wifi network.
       - Data type: constant string
       - Default value: none
       - Limited range: none
-
     hostname - The hostname for a device on the network and mDNS.
       - Data type: constant string
       - Default value: none
