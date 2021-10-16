@@ -25,6 +25,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     else
     {
       SERIAL_ACTION_END("Timeout");
+      WiFi.disconnect();
+      WiFi.mode(WIFI_OFF);
       return setLastResult(ResultCodes::ERROR_CONNECT);
     }
     SERIAL_DOT;
@@ -34,6 +36,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   SERIAL_VALUE("IP", WiFi.localIP());
   SERIAL_VALUE("Hostname", _hostname);
   SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
   return setLastResult();
 }
 
