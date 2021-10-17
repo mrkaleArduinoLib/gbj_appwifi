@@ -6,6 +6,7 @@ This is an application library, which is used usually as a project library for p
 - Library specifies (inherits from) the application `gbj_appbase` library.
 - Library utilizes error handling from the parent class.
 - Library activates multicast DNS right after wifi connection.
+- If the connection to Wifi network fails for 5 subsequent attempts with timeout, the library restarts the microcontroller.
 
 
 <a id="dependency"></a>

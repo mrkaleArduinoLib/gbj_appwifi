@@ -14,31 +14,45 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   WiFi.mode(WIFI_STA);
   WiFi.hostname(_hostname);
   WiFi.begin(_ssid, _pass);
+  uint8_t counter = Params::PARAM_ATTEMPS;
   SERIAL_ACTION("Connecting to AP...");
-  uint8_t counter = Timing::PERIOD_ATTEMPS;
-  while (WiFi.status() != WL_CONNECTED)
+  if (_fails)
   {
-    if (counter--)
+    while (WiFi.status() != WL_CONNECTED)
     {
-      delay(Timing::PERIOD_CONNECT);
+      if (counter--)
+      {
+        delay(Timing::PERIOD_CONNECT);
+      }
+      else
+      {
+        SERIAL_ACTION_END("Timeout");
+        WiFi.disconnect();
+        WiFi.mode(WIFI_OFF);
+        _fails--;
+        SERIAL_VALUE("fails", Params::PARAM_FAILS - _fails);
+        return setLastResult(ResultCodes::ERROR_CONNECT);
+      }
+      SERIAL_DOT;
     }
-    else
-    {
-      SERIAL_ACTION_END("Timeout");
-      WiFi.disconnect();
-      WiFi.mode(WIFI_OFF);
-      return setLastResult(ResultCodes::ERROR_CONNECT);
-    }
-    SERIAL_DOT;
+    SERIAL_ACTION_END("Connected");
+    SERIAL_VALUE("SSID", _ssid);
+    SERIAL_VALUE("IP", WiFi.localIP());
+    SERIAL_VALUE("Hostname", _hostname);
+    SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
+    SERIAL_VALUE("fails", Params::PARAM_FAILS - _fails);
+    _fails = Params::PARAM_FAILS;
+    WiFi.setAutoReconnect(true);
+    WiFi.persistent(true);
+    setLastResult();
   }
-  SERIAL_ACTION_END("Connected");
-  SERIAL_VALUE("SSID", _ssid);
-  SERIAL_VALUE("IP", WiFi.localIP());
-  SERIAL_VALUE("Hostname", _hostname);
-  SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
-  WiFi.setAutoReconnect(true);
-  WiFi.persistent(true);
-  return setLastResult();
+  else
+  {
+    SERIAL_ACTION_END("Restart MCU");
+    setLastResult(ResultCodes::ERROR_CONNECT);
+    ESP.restart();
+  }
+  return getLastResult();
 }
 
 gbj_appwifi::ResultCodes gbj_appwifi::mdns()

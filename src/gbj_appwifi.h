@@ -122,10 +122,16 @@ private:
     PERIOD_CONNECT = 500,
     PERIOD_CHECK = 7349, // Prime number - Avoid useless collisions
   };
+  enum Params : byte
+  {
+    PARAM_ATTEMPS = 20,
+    PARAM_FAILS = 5,
+  };
   const char *_ssid;
   const char *_pass;
   const char *_hostname;
   gbj_timer *_timer;
+  byte _fails = Params::PARAM_FAILS;
   ResultCodes connect();
   ResultCodes mdns();
 };
