@@ -118,7 +118,6 @@ public:
 private:
   enum Timing : unsigned int
   {
-    PERIOD_ATTEMPS = 20,
     PERIOD_CONNECT = 500,
     PERIOD_CHECK = 7349, // Prime number - Avoid useless collisions
   };
