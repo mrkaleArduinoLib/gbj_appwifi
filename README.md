@@ -51,6 +51,7 @@ Other constants and enumerations are inherited from the parent library.
 - [setPeriod()](#period)
 - [getPeriod()](#period)
 - [getHostname()](#getHostname)
+- [getRssi()](#getRssi)
 - [isConnected()](#isConnected)
 
 
@@ -125,6 +126,25 @@ None
 
 #### Returns
 A pointer to the constant string with hostname of the device.
+
+[Back to interface](#interface)
+
+
+<a id="getRssi"></a>
+
+## getRssi()
+
+#### Description
+The method returns the current WiFi _Received Signal Strength Indicator_ (RSSI) of the device connected to the wifi network. Values are negative.
+
+#### Syntax
+    int getRssi()
+
+#### Parameters
+None
+
+#### Returns
+Current wifi signal strength of the device.
 
 [Back to interface](#interface)
 

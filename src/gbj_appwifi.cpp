@@ -12,11 +12,11 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // WiFi.persistent(false);
   // WiFi.mode(WIFI_OFF); // Try this only if device cannot connect to AP
   WiFi.mode(WIFI_STA);
-  WiFi.hostname(_hostname);
-  WiFi.begin(_ssid, _pass);
+  WiFi.hostname(hostname_);
+  WiFi.begin(ssid_, pass_);
   uint8_t counter = Params::PARAM_ATTEMPS;
   SERIAL_ACTION("Connecting to AP...");
-  if (_fails)
+  if (fails_)
   {
     while (WiFi.status() != WL_CONNECTED)
     {
@@ -29,19 +29,19 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
         SERIAL_ACTION_END("Timeout");
         WiFi.disconnect();
         WiFi.mode(WIFI_OFF);
-        _fails--;
-        SERIAL_VALUE("fails", Params::PARAM_FAILS - _fails);
+        fails_--;
+        SERIAL_VALUE("fails", Params::PARAM_FAILS - fails_);
         return setLastResult(ResultCodes::ERROR_CONNECT);
       }
       SERIAL_DOT;
     }
     SERIAL_ACTION_END("Connected");
-    SERIAL_VALUE("SSID", _ssid);
+    SERIAL_VALUE("SSID", ssid_);
     SERIAL_VALUE("IP", WiFi.localIP());
-    SERIAL_VALUE("Hostname", _hostname);
+    SERIAL_VALUE("Hostname", hostname_);
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
-    SERIAL_VALUE("fails", Params::PARAM_FAILS - _fails);
-    _fails = Params::PARAM_FAILS;
+    SERIAL_VALUE("fails", Params::PARAM_FAILS - fails_);
+    fails_ = Params::PARAM_FAILS;
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
     setLastResult();

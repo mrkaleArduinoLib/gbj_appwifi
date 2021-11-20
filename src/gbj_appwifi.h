@@ -67,10 +67,10 @@ public:
   */
   inline gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
   {
-    _ssid = ssid;
-    _pass = pass;
-    _hostname = hostname;
-    _timer = new gbj_timer(Timing::PERIOD_CHECK, 0, true);
+    ssid_ = ssid;
+    pass_ = pass;
+    hostname_ = hostname;
+    timer_ = new gbj_timer(Timing::PERIOD_CHECK, 0, true);
   }
 
   /*
@@ -86,7 +86,7 @@ public:
   */
   inline void run()
   {
-    if (_timer->run())
+    if (timer_->run())
     {
       connect();
       mdns();
@@ -98,10 +98,11 @@ public:
   }
 
   // Setters
-  inline void setPeriod(unsigned long period) { _timer->setPeriod(period); };
+  inline void setPeriod(unsigned long period) { timer_->setPeriod(period); };
 
   // Getters
-  inline unsigned long getPeriod() { return _timer->getPeriod(); };
+  inline unsigned long getPeriod() { return timer_->getPeriod(); };
+  inline int getRssi() { return WiFi.RSSI(); }
   inline const char *getHostname()
   {
     if (isConnected())
@@ -110,7 +111,7 @@ public:
     }
     else
     {
-      return _hostname;
+      return hostname_;
     }
   };
   inline bool isConnected() { return WiFi.isConnected(); }
@@ -126,11 +127,11 @@ private:
     PARAM_ATTEMPS = 20,
     PARAM_FAILS = 5,
   };
-  const char *_ssid;
-  const char *_pass;
-  const char *_hostname;
-  gbj_timer *_timer;
-  byte _fails = Params::PARAM_FAILS;
+  const char *ssid_;
+  const char *pass_;
+  const char *hostname_;
+  gbj_timer *timer_;
+  byte fails_ = Params::PARAM_FAILS;
   ResultCodes connect();
   ResultCodes mdns();
 };
