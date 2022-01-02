@@ -38,7 +38,7 @@
 #undef SERIAL_PREFIX
 #define SERIAL_PREFIX "gbj_appwifi"
 
-class gbj_appwifi : gbj_appbase
+class gbj_appwifi : public gbj_appbase
 {
 public:
   static const String VERSION;
