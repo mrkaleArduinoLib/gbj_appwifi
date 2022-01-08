@@ -11,8 +11,6 @@ gbj_appwifi	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 run	KEYWORD2
-setPeriod	KEYWORD2
-getPeriod	KEYWORD2
 getHostname	KEYWORD2
 getRssi	KEYWORD2
 isConnected	KEYWORD2

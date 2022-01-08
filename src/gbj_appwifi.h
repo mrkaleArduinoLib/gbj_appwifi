@@ -33,12 +33,11 @@
 #endif
 #include "gbj_appbase.h"
 #include "gbj_serial_debug.h"
-#include "gbj_timer.h"
 
 #undef SERIAL_PREFIX
 #define SERIAL_PREFIX "gbj_appwifi"
 
-class gbj_appwifi : public gbj_appbase
+class gbj_appwifi : public gbj_appcore
 {
 public:
   static const String VERSION;
@@ -70,7 +69,6 @@ public:
     ssid_ = ssid;
     pass_ = pass;
     hostname_ = hostname;
-    timer_ = new gbj_timer(Timing::PERIOD_CHECK, 0, true);
   }
 
   /*
@@ -86,22 +84,17 @@ public:
   */
   inline void run()
   {
-    if (timer_->run())
-    {
-      connect();
-      mdns();
-    }
     if (isConnected())
     {
       MDNS.update();
     }
+    else
+    {
+      connect();
+    }
   }
 
-  // Setters
-  inline void setPeriod(unsigned long period) { timer_->setPeriod(period); };
-
   // Getters
-  inline unsigned long getPeriod() { return timer_->getPeriod(); };
   inline int getRssi() { return WiFi.RSSI(); }
   inline const char *getHostname()
   {
@@ -120,7 +113,6 @@ private:
   enum Timing : unsigned int
   {
     PERIOD_CONNECT = 500,
-    PERIOD_CHECK = 7349, // Prime number - Avoid useless collisions
   };
   enum Params : byte
   {
@@ -130,7 +122,6 @@ private:
   const char *ssid_;
   const char *pass_;
   const char *hostname_;
-  gbj_timer *timer_;
   byte fails_ = Params::PARAM_FAILS;
   ResultCodes connect();
   ResultCodes mdns();

@@ -3,7 +3,7 @@
 # gbj\_appwifi
 This is an application library, which is used usually as a project library for particular PlatformIO project. However; in every project utilizing the wifi connection should be copied the same library, so that it is located in central library storage.
 
-- Library specifies (inherits from) the application `gbj_appbase` library.
+- Library specifies (inherits from) the application `gbj_appcore` library.
 - Library utilizes error handling from the parent class.
 - Library activates multicast DNS right after wifi connection.
 - If the connection to Wifi network fails for 5 subsequent attempts with timeout, the library restarts the microcontroller.
@@ -13,8 +13,7 @@ This is an application library, which is used usually as a project library for p
 
 ## Dependency
 
-- **gbj\_appbase**: Parent library loaded from the file `gbj_appbase.h`.
-- **gbj\_timer**: Library for executing internal timer within an instance object loaded from the file `gbj_timer.h`.
+- **gbj\_appcore**: Parent library loaded from the file `gbj_appcore.h`.
 - **gbj\_serial\_debug**: Auxilliary library for debug serial output loaded from the file `gbj_serial_debug.h`. It enables to exclude serial outputs from final compilation.
 
 #### Espressif ESP8266 platform
@@ -48,8 +47,6 @@ Other constants and enumerations are inherited from the parent library.
 
 - [gbj_appwifi()](#gbj_appwifi)
 - [run()](#run)
-- [setPeriod()](#period)
-- [getPeriod()](#period)
 - [getHostname()](#getHostname)
 - [getRssi()](#getRssi)
 - [isConnected()](#isConnected)
@@ -93,20 +90,10 @@ Object performing connection and reconnection to the wifi network.
 ## run()
 
 #### Description
-The execution method as the implementation of the virtual method from parent class, which should be called frequently, usually in the loop function of a sketch.
-- The method connects to the wifi network at the very first calling it.
-- At the end of each timer period the method checks the connection to the wifi network and reconnects to it if neccesary.
+The execution method should be called frequently, usually in the loop function of a sketch.
+- The method connects to the wifi network at the very first calling it and reconnects to it if neccesary.
+- After successful connection the method activates multicast DNS.
 - If the serial connection is active, the library outputs flow of the connection and at success lists basic parameters of the connection to wifi.
-
-[Back to interface](#interface)
-
-
-<a id="period"></a>
-
-## setPeriod(), getPeriod()
-
-#### Description
-The methods are just straitforward implementation of the virual methods from the parent class.
 
 [Back to interface](#interface)
 
@@ -135,7 +122,7 @@ A pointer to the constant string with hostname of the device.
 ## getRssi()
 
 #### Description
-The method returns the current WiFi _Received Signal Strength Indicator_ (RSSI) of the device connected to the wifi network. Values are negative.
+The method returns the current WiFi _Received Signal Strength Indicator_ (RSSI) of the device connected to the wifi network. Values are negative and in _decibel milliwats_ (dBm).
 
 #### Syntax
     int getRssi()
@@ -144,7 +131,7 @@ The method returns the current WiFi _Received Signal Strength Indicator_ (RSSI) 
 None
 
 #### Returns
-Current wifi signal strength of the device.
+Current wifi signal strength of the device in _dBm_.
 
 [Back to interface](#interface)
 

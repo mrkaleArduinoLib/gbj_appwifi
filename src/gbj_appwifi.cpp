@@ -1,11 +1,10 @@
 #include "gbj_appwifi.h"
-const String gbj_appwifi::VERSION = "GBJ_APPWIFI 1.0.0";
+const String gbj_appwifi::VERSION = "GBJ_APPWIFI 1.1.0";
 
 gbj_appwifi::ResultCodes gbj_appwifi::connect()
 {
   if (isConnected())
   {
-    SERIAL_TITLE("Connected");
     return setLastResult();
   }
   // WiFi fix: https://github.com/esp8266/Arduino/issues/2186
@@ -52,7 +51,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     setLastResult(ResultCodes::ERROR_CONNECT);
     ESP.restart();
   }
-  return getLastResult();
+  return mdns();
 }
 
 gbj_appwifi::ResultCodes gbj_appwifi::mdns()
