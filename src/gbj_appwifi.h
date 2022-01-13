@@ -42,6 +42,18 @@ class gbj_appwifi : public gbj_appcore
 public:
   static const String VERSION;
 
+  typedef void Handler();
+
+  struct Handlers
+  {
+    Handler *onConnectStart;
+    Handler *onConnectTry;
+    Handler *onConnectSuccess;
+    Handler *onConnectFail;
+    Handler *onDisconnect;
+    Handler *onRestart;
+  };
+
   /*
     Constructor.
 
@@ -61,14 +73,22 @@ public:
       - Data type: constant string
       - Default value: none
       - Limited range: none
+    handlers - A structure with pointers to various callback handler functions.
+      - Data type: Handlers
+      - Default value: structure with zeroed all handlers
+      - Limited range: system address range
 
     RETURN: object
   */
-  inline gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
+  inline gbj_appwifi(const char *ssid,
+                     const char *pass,
+                     const char *hostname,
+                     Handlers handlers = Handlers())
   {
     ssid_ = ssid;
     pass_ = pass;
     hostname_ = hostname;
+    handlers_ = handlers;
   }
 
   /*
@@ -94,8 +114,13 @@ public:
     }
   }
 
+  // Setters
+  inline void setRestarts(byte restarts) { status_.restarts = restarts; }
+
   // Getters
+  inline byte getRestarts() { return status_.restarts; }
   inline int getRssi() { return WiFi.RSSI(); }
+  inline int getLocalIP() { return WiFi.localIP(); }
   inline const char *getHostname()
   {
     if (isConnected())
@@ -108,21 +133,52 @@ public:
     }
   };
   inline bool isConnected() { return WiFi.isConnected(); }
+  inline const char *getMacAddress()
+  {
+    byte mac[WL_MAC_ADDR_LENGTH];
+    WiFi.macAddress(mac);
+    sprintf(macAddress_,
+            "%02X:%02X:%02X:%02X:%02X:%02X",
+            mac[0],
+            mac[1],
+            mac[2],
+            mac[3],
+            mac[4],
+            mac[5]);
+    return macAddress_;
+  }
 
 private:
-  enum Timing : unsigned int
+  enum Timing : unsigned long
   {
     PERIOD_CONNECT = 500,
+    PERIOD_RETRY = 1 * 60 * 1000,
+    PERIOD_RESTART = 1 * 60 * 60 * 1000,
   };
   enum Params : byte
   {
-    PARAM_ATTEMPS = 20,
-    PARAM_FAILS = 5,
+    PARAM_TRIES = 20,
+    PARAM_FAILS = 3,
+    PARAM_RESTARTS = 3,
   };
+  struct Status
+  {
+    byte tries;
+    byte fails;
+    byte restarts;
+    unsigned long tsRetry;
+    bool flConnGain;
+    void reset()
+    {
+      tries = fails = restarts = tsRetry = 0;
+      flConnGain = false;
+    }
+  } status_;
   const char *ssid_;
   const char *pass_;
   const char *hostname_;
-  byte fails_ = Params::PARAM_FAILS;
+  char macAddress_[18];
+  Handlers handlers_;
   ResultCodes connect();
   ResultCodes mdns();
 };
