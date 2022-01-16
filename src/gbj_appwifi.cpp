@@ -58,8 +58,6 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
       }
       else
       {
-        setAddressIp();
-        setAddressMac();
         SERIAL_ACTION_END("Timeout");
         WiFi.disconnect();
         WiFi.mode(WIFI_OFF);

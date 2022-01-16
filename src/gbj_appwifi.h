@@ -164,28 +164,20 @@ private:
   ResultCodes mdns();
   inline void setAddressIp()
   {
-    strcpy(addressIp_,
-           WiFi.localIP() ? WiFi.localIP().toString().c_str() : NA.c_str());
+    strcpy(addressIp_, WiFi.localIP().toString().c_str());
   }
   inline void setAddressMac()
   {
     byte mac[WL_MAC_ADDR_LENGTH];
     WiFi.macAddress(mac);
-    if (mac[0])
-    {
-      sprintf(addressMac_,
-              "%02X:%02X:%02X:%02X:%02X:%02X",
-              mac[0],
-              mac[1],
-              mac[2],
-              mac[3],
-              mac[4],
-              mac[5]);
-    }
-    else
-    {
-      strcpy(addressMac_, NA.c_str());
-    }
+    sprintf(addressMac_,
+            "%02X:%02X:%02X:%02X:%02X:%02X",
+            mac[0],
+            mac[1],
+            mac[2],
+            mac[3],
+            mac[4],
+            mac[5]);
   }
 };
 
