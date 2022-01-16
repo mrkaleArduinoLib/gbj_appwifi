@@ -17,10 +17,9 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // for a time period since mcu boot and try to connect
   if (status_.restarts >= Params::PARAM_RESTARTS)
   {
-    SERIAL_VALUE("Restarts", status_.restarts);
     if (millis() > Timing::PERIOD_RESTART)
     {
-      SERIAL_TITLE("New connection cycle");
+      SERIAL_VALUE("New cycle after restarts", status_.restarts);
       status_.reset();
     }
     else
@@ -59,6 +58,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
       }
       else
       {
+        setAddressIp();
+        setAddressMac();
         SERIAL_ACTION_END("Timeout");
         WiFi.disconnect();
         WiFi.mode(WIFI_OFF);
@@ -85,6 +86,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
       }
       SERIAL_DOT;
     }
+    setAddressIp();
+    setAddressMac();
     SERIAL_ACTION_END("Connected");
     SERIAL_VALUE("tries", status_.tries);
     SERIAL_VALUE("fails", status_.fails);
@@ -92,7 +95,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     SERIAL_VALUE("Hostname", hostname_);
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
     SERIAL_VALUE("IP", WiFi.localIP());
-    SERIAL_VALUE("MAC", getMacAddress());
+    SERIAL_VALUE("MAC", getAddressMac());
     status_.reset();
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);

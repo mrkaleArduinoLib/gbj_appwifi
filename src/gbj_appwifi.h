@@ -24,8 +24,8 @@
   #include <ESP8266mDNS.h>
 #elif defined(ESP32)
   #include <Arduino.h>
-  #include <WiFi.h>
   #include <ESPmDNS.h>
+  #include <WiFi.h>
 #elif defined(PARTICLE)
   #include <Particle.h>
 #else
@@ -118,35 +118,15 @@ public:
   inline void setRestarts(byte restarts) { status_.restarts = restarts; }
 
   // Getters
+  inline bool isConnected() { return WiFi.isConnected(); }
   inline byte getRestarts() { return status_.restarts; }
   inline int getRssi() { return WiFi.RSSI(); }
-  inline int getLocalIP() { return WiFi.localIP(); }
+  inline const char *getAddressIp() { return addressIp_; }
+  inline const char *getAddressMac() { return addressMac_; }
   inline const char *getHostname()
   {
-    if (isConnected())
-    {
-      return WiFi.getHostname();
-    }
-    else
-    {
-      return hostname_;
-    }
+    return isConnected() ? WiFi.getHostname() : hostname_;
   };
-  inline bool isConnected() { return WiFi.isConnected(); }
-  inline const char *getMacAddress()
-  {
-    byte mac[WL_MAC_ADDR_LENGTH];
-    WiFi.macAddress(mac);
-    sprintf(macAddress_,
-            "%02X:%02X:%02X:%02X:%02X:%02X",
-            mac[0],
-            mac[1],
-            mac[2],
-            mac[3],
-            mac[4],
-            mac[5]);
-    return macAddress_;
-  }
 
 private:
   enum Timing : unsigned long
@@ -177,10 +157,36 @@ private:
   const char *ssid_;
   const char *pass_;
   const char *hostname_;
-  char macAddress_[18];
+  char addressIp_[16];
+  char addressMac_[18];
   Handlers handlers_;
   ResultCodes connect();
   ResultCodes mdns();
+  inline void setAddressIp()
+  {
+    strcpy(addressIp_,
+           WiFi.localIP() ? WiFi.localIP().toString().c_str() : NA.c_str());
+  }
+  inline void setAddressMac()
+  {
+    byte mac[WL_MAC_ADDR_LENGTH];
+    WiFi.macAddress(mac);
+    if (mac[0])
+    {
+      sprintf(addressMac_,
+              "%02X:%02X:%02X:%02X:%02X:%02X",
+              mac[0],
+              mac[1],
+              mac[2],
+              mac[3],
+              mac[4],
+              mac[5]);
+    }
+    else
+    {
+      strcpy(addressMac_, NA.c_str());
+    }
+  }
 };
 
 #endif
