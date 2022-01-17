@@ -17,7 +17,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // for a time period since mcu boot and try to connect.
   // Ignore it, if the mcu has not been reset by software, e.g., by reset
   // button or firmware upload.
-  if (getResetReason() == gbj_appwifi::ERROR_BOOT_SOFT_RESTART &&
+  if (getResetReason() == gbj_appwifi::BOOT_SOFT_RESTART &&
       status_.restarts >= Params::PARAM_RESTARTS)
   {
     if (millis() > Timing::PERIOD_RESTART)

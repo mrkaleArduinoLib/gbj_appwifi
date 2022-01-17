@@ -119,6 +119,7 @@ public:
 
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
+  inline byte getFails() { return status_.fails; }
   inline byte getRestarts() { return status_.restarts; }
   inline int getRssi() { return WiFi.RSSI(); }
   inline const char *getAddressIp() { return addressIp_; }
