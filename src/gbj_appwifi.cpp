@@ -6,7 +6,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // Call callback just once since connection lost
   if (status_.flConnGain)
   {
-    SERIAL_TITLE("Connection lost");
+    SERIAL_TITLE("Connection lost")
     status_.flConnGain = false;
     if (handlers_.onDisconnect)
     {
@@ -22,7 +22,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   {
     if (millis() > Timing::PERIOD_RESTART)
     {
-      SERIAL_VALUE("New cycle after restarts", status_.restarts);
+      SERIAL_VALUE("New cycle after restarts", status_.restarts)
       status_.reset();
     }
     else
@@ -47,7 +47,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     {
       handlers_.onConnectStart();
     }
-    SERIAL_ACTION("Connecting to AP...");
+    SERIAL_ACTION("Connecting to AP...")
     status_.tries = 0;
     while (WiFi.status() != WL_CONNECTED)
     {
@@ -61,13 +61,13 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
       }
       else
       {
-        SERIAL_ACTION_END("Timeout");
+        SERIAL_ACTION_END("Timeout")
         WiFi.disconnect();
         WiFi.mode(WIFI_OFF);
         status_.tsRetry = millis();
         status_.fails++;
-        SERIAL_VALUE("tries", status_.tries);
-        SERIAL_VALUE("fails", status_.fails);
+        SERIAL_VALUE("tries", status_.tries)
+        SERIAL_VALUE("fails", status_.fails)
         if (handlers_.onConnectFail)
         {
           handlers_.onConnectFail();
@@ -75,7 +75,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
         // Restart MCU
         if (status_.fails >= Params::PARAM_FAILS)
         {
-          SERIAL_TITLE("Restart MCU");
+          SERIAL_TITLE("Restart MCU")
           status_.restarts++;
           if (handlers_.onRestart)
           {
@@ -85,18 +85,18 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
         }
         return setLastResult(ResultCodes::ERROR_CONNECT);
       }
-      SERIAL_DOT;
+      SERIAL_DOT
     }
     setAddressIp();
     setAddressMac();
-    SERIAL_ACTION_END("Connected");
-    SERIAL_VALUE("tries", status_.tries);
-    SERIAL_VALUE("fails", status_.fails);
-    SERIAL_VALUE("SSID", ssid_);
-    SERIAL_VALUE("Hostname", hostname_);
-    SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI());
-    SERIAL_VALUE("IP", WiFi.localIP());
-    SERIAL_VALUE("MAC", getAddressMac());
+    SERIAL_ACTION_END("Connected")
+    SERIAL_VALUE("tries", status_.tries)
+    SERIAL_VALUE("fails", status_.fails)
+    SERIAL_VALUE("SSID", ssid_)
+    SERIAL_VALUE("Hostname", hostname_)
+    SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
+    SERIAL_VALUE("IP", WiFi.localIP())
+    SERIAL_VALUE("MAC", getAddressMac())
     status_.reset();
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
@@ -119,12 +119,12 @@ gbj_appwifi::ResultCodes gbj_appwifi::mdns()
   // Start multicast DNS
   if (MDNS.begin(getHostname()))
   {
-    SERIAL_TITLE("mDNS started");
+    SERIAL_TITLE("mDNS started")
     return setLastResult();
   }
   else
   {
-    SERIAL_TITLE("mDNS failed");
+    SERIAL_TITLE("mDNS failed")
     return setLastResult(ResultCodes::ERROR_CONNECT);
   }
 }
