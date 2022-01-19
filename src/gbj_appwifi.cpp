@@ -13,25 +13,18 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
       handlers_.onDisconnect();
     }
   }
-  // Wait for restoring an access point at external wifi failure
-  // for a time period since mcu boot and try to connect.
-  // Ignore it, if the mcu has not been reset by software, e.g., by reset
+  // Wait for mcu restart recovery period.
+  // Expected restoring an access point after external wifi failure.
+  // Ignore period, if the mcu has not been reset by software, e.g., by reset
   // button or firmware upload.
   if (getResetReason() == gbj_appwifi::BOOT_SOFT_RESTART &&
-      status_.restarts >= Params::PARAM_RESTARTS)
+      status_.restarts >= Params::PARAM_RESTARTS &&
+      millis() < Timing::PERIOD_RESTART)
   {
-    if (millis() > Timing::PERIOD_RESTART)
-    {
-      SERIAL_VALUE("New cycle after restarts", status_.restarts)
-      status_.reset();
-    }
-    else
-    {
-      return setLastResult(ResultCodes::ERROR_NOINIT);
-    }
+    return setLastResult(ResultCodes::ERROR_NOINIT);
   }
-  // The first connection atempt immediately, next one after the retry period
-  if (status_.tsRetry > 0 && millis() - status_.tsRetry < Timing::PERIOD_RETRY)
+  // Wait for recovery period after failed connection
+  if (status_.tsRetry && millis() - status_.tsRetry < Timing::PERIOD_CYCLE)
   {
     return setLastResult(ResultCodes::ERROR_NOINIT);
   }
@@ -41,71 +34,65 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   WiFi.mode(WIFI_STA);
   WiFi.hostname(hostname_);
   WiFi.begin(ssid_, pass_);
-  if (status_.fails < Params::PARAM_FAILS)
+  if (handlers_.onConnectStart)
   {
-    if (handlers_.onConnectStart)
-    {
-      handlers_.onConnectStart();
-    }
-    SERIAL_ACTION("Connecting to AP...")
-    status_.tries = 0;
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      if (++status_.tries < Params::PARAM_TRIES)
-      {
-        if (handlers_.onConnectTry)
-        {
-          handlers_.onConnectTry();
-        }
-        delay(Timing::PERIOD_CONNECT);
-      }
-      else
-      {
-        SERIAL_ACTION_END("Timeout")
-        WiFi.disconnect();
-        WiFi.mode(WIFI_OFF);
-        status_.tsRetry = millis();
-        status_.fails++;
-        SERIAL_VALUE("tries", status_.tries)
-        SERIAL_VALUE("fails", status_.fails)
-        if (handlers_.onConnectFail)
-        {
-          handlers_.onConnectFail();
-        }
-        // Restart MCU
-        if (status_.fails >= Params::PARAM_FAILS)
-        {
-          SERIAL_TITLE("Restart MCU")
-          status_.restarts++;
-          if (handlers_.onRestart)
-          {
-            handlers_.onRestart();
-          }
-          ESP.restart();
-        }
-        return setLastResult(ResultCodes::ERROR_CONNECT);
-      }
-      SERIAL_DOT
-    }
+    handlers_.onConnectStart();
+  }
+  SERIAL_ACTION("Connection to AP")
+  byte counter = PARAM_TRIES;
+  while (WiFi.status() != WL_CONNECTED && counter--)
+  {
+    SERIAL_DOT
+    delay(Timing::PERIOD_FAIL);
+  }
+  // Successful connection
+  if (WiFi.status() == WL_CONNECTED)
+  {
     setAddressIp();
     setAddressMac();
-    SERIAL_ACTION_END("Connected")
-    SERIAL_VALUE("tries", status_.tries)
+    SERIAL_ACTION_END("Success")
+    SERIAL_VALUE("tries", PARAM_TRIES - counter)
     SERIAL_VALUE("fails", status_.fails)
     SERIAL_VALUE("SSID", ssid_)
     SERIAL_VALUE("Hostname", hostname_)
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
     SERIAL_VALUE("IP", WiFi.localIP())
     SERIAL_VALUE("MAC", getAddressMac())
-    status_.reset();
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
-    mdns();
+    status_.reset();
+    status_.flConnGain = true;
     if (handlers_.onConnectSuccess)
     {
       handlers_.onConnectSuccess();
     }
-    status_.flConnGain = true;
+    setLastResult(ResultCodes::SUCCESS);
+  }
+  else
+  {
+    // Failed connection
+    status_.fails++;
+    status_.tsRetry = millis();
+    SERIAL_ACTION_END("Fail")
+    SERIAL_VALUE("fails", status_.fails)
+    WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
+    if (handlers_.onConnectFail)
+    {
+      handlers_.onConnectFail();
+    }
+    // Restart MCU
+    if (status_.fails >= Params::PARAM_FAILS)
+    {
+      status_.restarts++;
+      SERIAL_VALUE("Restart", status_.restarts)
+      if (handlers_.onRestart)
+      {
+        handlers_.onRestart();
+      }
+      ESP.restart();
+    }
+    setLastResult(ResultCodes::ERROR_CONNECT);
   }
   return getLastResult();
 }
@@ -125,6 +112,10 @@ gbj_appwifi::ResultCodes gbj_appwifi::mdns()
   else
   {
     SERIAL_TITLE("mDNS failed")
+    if (handlers_.onMdnsFail)
+    {
+      handlers_.onMdnsFail();
+    }
     return setLastResult(ResultCodes::ERROR_CONNECT);
   }
 }

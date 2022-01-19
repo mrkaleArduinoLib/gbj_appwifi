@@ -47,11 +47,11 @@ public:
   struct Handlers
   {
     Handler *onConnectStart;
-    Handler *onConnectTry;
     Handler *onConnectSuccess;
     Handler *onConnectFail;
     Handler *onDisconnect;
     Handler *onRestart;
+    Handler *onMdnsFail;
   };
 
   /*
@@ -89,6 +89,7 @@ public:
     pass_ = pass;
     hostname_ = hostname;
     handlers_ = handlers;
+    status_.reset();
   }
 
   /*
@@ -112,6 +113,7 @@ public:
     {
       connect();
     }
+    mdns();
   }
 
   // Setters
@@ -119,6 +121,7 @@ public:
 
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
+  inline bool isMdns() { return MDNS.isRunning(); }
   inline byte getFails() { return status_.fails; }
   inline byte getRestarts() { return status_.restarts; }
   inline int getRssi() { return WiFi.RSSI(); }
@@ -132,8 +135,8 @@ public:
 private:
   enum Timing : unsigned long
   {
-    PERIOD_CONNECT = 500,
-    PERIOD_RETRY = 1 * 60 * 1000,
+    PERIOD_FAIL = 500,
+    PERIOD_CYCLE = 1 * 60 * 1000,
     PERIOD_RESTART = 1 * 60 * 60 * 1000,
   };
   enum Params : byte
@@ -144,14 +147,12 @@ private:
   };
   struct Status
   {
-    byte tries;
-    byte fails;
-    byte restarts;
+    byte fails, restarts;
     unsigned long tsRetry;
     bool flConnGain;
     void reset()
     {
-      tries = fails = restarts = tsRetry = 0;
+      fails = restarts = tsRetry = 0;
       flConnGain = false;
     }
   } status_;
