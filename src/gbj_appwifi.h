@@ -51,6 +51,7 @@ public:
     Handler *onConnectFail;
     Handler *onDisconnect;
     Handler *onRestart;
+    Handler *onMdnsSuccess;
     Handler *onMdnsFail;
   };
 

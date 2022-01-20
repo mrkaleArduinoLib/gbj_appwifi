@@ -38,8 +38,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   {
     handlers_.onConnectStart();
   }
-  SERIAL_ACTION("Connection to AP")
-  byte counter = PARAM_TRIES;
+  SERIAL_ACTION("Connection to AP...")
+  byte counter = Params::PARAM_TRIES;
   while (WiFi.status() != WL_CONNECTED && counter--)
   {
     SERIAL_DOT
@@ -51,7 +51,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     setAddressIp();
     setAddressMac();
     SERIAL_ACTION_END("Success")
-    SERIAL_VALUE("tries", PARAM_TRIES - counter)
+    SERIAL_VALUE("tries", Params::PARAM_TRIES - counter + 1)
     SERIAL_VALUE("fails", status_.fails)
     SERIAL_VALUE("SSID", ssid_)
     SERIAL_VALUE("Hostname", hostname_)
@@ -68,11 +68,11 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     }
     setLastResult(ResultCodes::SUCCESS);
   }
+  // Failed connection
   else
   {
-    // Failed connection
-    status_.fails++;
     status_.tsRetry = millis();
+    status_.fails++;
     SERIAL_ACTION_END("Fail")
     SERIAL_VALUE("fails", status_.fails)
     WiFi.disconnect();
@@ -107,6 +107,10 @@ gbj_appwifi::ResultCodes gbj_appwifi::mdns()
   if (MDNS.begin(getHostname()))
   {
     SERIAL_TITLE("mDNS started")
+    if (handlers_.onMdnsSuccess)
+    {
+      handlers_.onMdnsSuccess();
+    }
     return setLastResult();
   }
   else
