@@ -43,6 +43,10 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   while (WiFi.status() != WL_CONNECTED && counter--)
   {
     SERIAL_DOT
+    if (handlers_.onConnectTry)
+    {
+      handlers_.onConnectTry();
+    }
     delay(Timing::PERIOD_FAIL);
   }
   // Successful connection
