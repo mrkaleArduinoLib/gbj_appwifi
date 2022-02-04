@@ -1,5 +1,5 @@
 #include "gbj_appwifi.h"
-const String gbj_appwifi::VERSION = "GBJ_APPWIFI 1.1.0";
+const String gbj_appwifi::VERSION = "GBJ_APPWIFI 1.2.0";
 
 gbj_appwifi::ResultCodes gbj_appwifi::connect()
 {
@@ -19,12 +19,12 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // button or firmware upload.
   if (getResetReason() == gbj_appwifi::BOOT_SOFT_RESTART &&
       status_.restarts >= Params::PARAM_RESTARTS &&
-      millis() < Timing::PERIOD_RESTART)
+      millis() < Timing::PERIOD_CYCLE)
   {
     return setLastResult(ResultCodes::ERROR_NOINIT);
   }
   // Wait for recovery period after failed connection
-  if (status_.tsRetry && millis() - status_.tsRetry < Timing::PERIOD_CYCLE)
+  if (status_.tsRetry && millis() - status_.tsRetry < Timing::PERIOD_SET)
   {
     return setLastResult(ResultCodes::ERROR_NOINIT);
   }

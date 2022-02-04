@@ -138,8 +138,8 @@ private:
   enum Timing : unsigned long
   {
     PERIOD_FAIL = 500,
-    PERIOD_CYCLE = 1 * 60 * 1000,
-    PERIOD_RESTART = 1 * 60 * 60 * 1000,
+    PERIOD_SET = 1 * 60 * 1000,
+    PERIOD_CYCLE = 1 * 60 * 60 * 1000,
   };
   enum Params : byte
   {
