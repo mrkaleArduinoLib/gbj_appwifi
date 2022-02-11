@@ -1,5 +1,5 @@
 #include "gbj_appwifi.h"
-const String gbj_appwifi::VERSION = "GBJ_APPWIFI 1.2.0";
+const String gbj_appwifi::VERSION = "GBJ_APPWIFI 1.3.0";
 
 gbj_appwifi::ResultCodes gbj_appwifi::connect()
 {
@@ -7,7 +7,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   if (status_.flConnGain)
   {
     SERIAL_TITLE("Connection lost")
-    status_.flConnGain = false;
+    status_.reset();
     if (handlers_.onDisconnect)
     {
       handlers_.onDisconnect();
@@ -64,8 +64,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     SERIAL_VALUE("MAC", getAddressMac())
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
-    status_.reset();
-    status_.flConnGain = true;
+    status_.init();
     if (handlers_.onConnectSuccess)
     {
       handlers_.onConnectSuccess();

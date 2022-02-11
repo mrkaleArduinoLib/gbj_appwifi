@@ -91,7 +91,6 @@ public:
     pass_ = pass;
     hostname_ = hostname;
     handlers_ = handlers;
-    status_.reset();
   }
 
   /*
@@ -110,6 +109,7 @@ public:
     if (isConnected())
     {
       MDNS.update();
+      updateAddressIp();
     }
     else
     {
@@ -154,8 +154,14 @@ private:
     bool flConnGain;
     void reset()
     {
-      fails = restarts = tsRetry = 0;
+      tsRetry = 0;
       flConnGain = false;
+    }
+    void init()
+    {
+      reset();
+      fails = restarts = 0;
+      flConnGain = true;
     }
   } status_;
   const char *ssid_;
@@ -169,6 +175,15 @@ private:
   inline void setAddressIp()
   {
     strcpy(addressIp_, WiFi.localIP().toString().c_str());
+  }
+  inline void updateAddressIp()
+  {
+    if (millis() - status_.tsRetry > Timing::PERIOD_SET)
+    {
+      setAddressIp();
+      SERIAL_VALUE("IP update", WiFi.localIP())
+      status_.tsRetry = millis();
+    }
   }
   inline void setAddressMac()
   {
