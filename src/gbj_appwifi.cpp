@@ -62,8 +62,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
     SERIAL_VALUE("IP", WiFi.localIP())
     SERIAL_VALUE("MAC", getAddressMac())
-    WiFi.setAutoReconnect(true);
-    WiFi.persistent(true);
+    WiFi.setAutoReconnect(false);
+    WiFi.persistent(false);
     status_.init();
     if (handlers_.onConnectSuccess)
     {
