@@ -57,7 +57,7 @@ public:
   };
 
   /*
-    Constructor.
+    Constructor
 
     DESCRIPTION:
     Constructor creates the class instance object and sets credentials for wifi.
@@ -87,14 +87,34 @@ public:
                      const char *hostname,
                      Handlers handlers = Handlers())
   {
-    ssid_ = ssid;
-    pass_ = pass;
-    hostname_ = hostname;
+    wifi_.ssid = ssid;
+    wifi_.pass = pass;
+    wifi_.hostname = hostname;
+    handlers_ = handlers;
+  }
+  inline gbj_appwifi(const char *ssid,
+                     const char *pass,
+                     const char *hostname,
+                     const IPAddress staticIp,
+                     const IPAddress gateway,
+                     const IPAddress subnet,
+                     const IPAddress primaryDns = IPAddress(),
+                     const IPAddress secondaryDns = IPAddress(),
+                     Handlers handlers = Handlers())
+  {
+    wifi_.ssid = ssid;
+    wifi_.pass = pass;
+    wifi_.hostname = hostname;
+    wifi_.staticIp = staticIp;
+    wifi_.gateway = gateway;
+    wifi_.subnet = subnet;
+    wifi_.primaryDns = primaryDns;
+    wifi_.secondaryDns = secondaryDns;
     handlers_ = handlers;
   }
 
   /*
-    Processing.
+    Processing
 
     DESCRIPTION:
     The method should be called in an application sketch loop.
@@ -109,7 +129,6 @@ public:
     if (isConnected())
     {
       MDNS.update();
-      updateAddressIp();
     }
     else
     {
@@ -131,7 +150,7 @@ public:
   inline const char *getAddressMac() { return addressMac_; }
   inline const char *getHostname()
   {
-    return isConnected() ? WiFi.getHostname() : hostname_;
+    return isConnected() ? WiFi.getHostname() : wifi_.hostname;
   };
 
 private:
@@ -147,6 +166,17 @@ private:
     PARAM_FAILS = 3,
     PARAM_RESTARTS = 3,
   };
+  struct Wifi
+  {
+    const char *ssid;
+    const char *pass;
+    const char *hostname;
+    IPAddress staticIp;
+    IPAddress gateway;
+    IPAddress subnet;
+    IPAddress primaryDns;
+    IPAddress secondaryDns;
+  } wifi_;
   struct Status
   {
     byte fails, restarts;
@@ -164,9 +194,6 @@ private:
       flConnGain = true;
     }
   } status_;
-  const char *ssid_;
-  const char *pass_;
-  const char *hostname_;
   char addressIp_[16];
   char addressMac_[18];
   Handlers handlers_;
@@ -175,15 +202,6 @@ private:
   inline void setAddressIp()
   {
     strcpy(addressIp_, WiFi.localIP().toString().c_str());
-  }
-  inline void updateAddressIp()
-  {
-    if (millis() - status_.tsRetry > Timing::PERIOD_SET)
-    {
-      setAddressIp();
-      SERIAL_VALUE("IP update", WiFi.localIP())
-      status_.tsRetry = millis();
-    }
   }
   inline void setAddressMac()
   {

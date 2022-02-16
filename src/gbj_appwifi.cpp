@@ -32,8 +32,17 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // WiFi.persistent(false);
   // WiFi.mode(WIFI_OFF); // Try this only if device cannot connect to AP
   WiFi.mode(WIFI_STA);
-  WiFi.hostname(hostname_);
-  WiFi.begin(ssid_, pass_);
+  WiFi.disconnect();
+  WiFi.hostname(wifi_.hostname);
+  if (wifi_.staticIp)
+  {
+    WiFi.config(wifi_.staticIp,
+                wifi_.gateway,
+                wifi_.subnet,
+                wifi_.primaryDns,
+                wifi_.secondaryDns);
+  }
+  WiFi.begin(wifi_.ssid, wifi_.pass);
   if (handlers_.onConnectStart)
   {
     handlers_.onConnectStart();
@@ -57,8 +66,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     SERIAL_ACTION_END("Success")
     SERIAL_VALUE("tries", Params::PARAM_TRIES - counter + 1)
     SERIAL_VALUE("fails", status_.fails)
-    SERIAL_VALUE("SSID", ssid_)
-    SERIAL_VALUE("Hostname", hostname_)
+    SERIAL_VALUE("SSID", wifi_.ssid)
+    SERIAL_VALUE("Hostname", wifi_.hostname)
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
     SERIAL_VALUE("IP", WiFi.localIP())
     SERIAL_VALUE("MAC", getAddressMac())

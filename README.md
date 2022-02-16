@@ -9,13 +9,13 @@ This is an application library, which is used usually as a project library for p
 * Update in library is valid for all involved projects.
 * It specifies (inherits from) the parent application library `gbj_appcore`.
 * It utilizes funcionality and error handling from the parent class.
-* The library activates multicast DNS right after wifi connection.
 
 
 ## Fundamental functionality
+* The library enables set a static (fixed) IP address of the microcontroller.
 * The connection to wifi is checked at every loop of a main sketch.
 * If no connection to wifi is detected, the library starts the [connection process](#connection).
-* If the connection is established, the library periodically updates IP address of the microcontroller.
+* The library activates multicast DNS right after wifi connection.
 
 
 <a id="internals"></a>
@@ -157,7 +157,7 @@ void onWifiSuccess()
   ...
 }
 gbj_appwifi::Handlers handlersWifi = { .onConnectSuccess = onWifiSuccess };
-gbj_appwifi wifi = gbj_appwifi(..., handlersDevice);
+gbj_appwifi wifi = gbj_appwifi(..., handlersWifi);
 ```
 
 #### See also
@@ -172,11 +172,16 @@ gbj_appwifi wifi = gbj_appwifi(..., handlersDevice);
 ## gbj_appwifi()
 
 #### Description
-Constructor creates the class instance object and initiates internal resources.
-* It inputs credentials for a wifi network.
+Overloaded constructor creates the class instance object and initiates internal resources.
+* It inputs credentials for a wifi network and potential handlers.
+* It enables set network parameters for setting the static IP address.
 
 #### Syntax
     gbj_appwifi(const char *ssid, const char *pass, const char *hostname, Handlers handlers)
+    gbj_appwifi(const char *ssid, const char *pass, const char *hostname,
+      const IPAddress staticIp, const IPAddress gateway, const IPAddress subnet,
+      const IPAddress primaryDns, const IPAddress secondaryDns
+      Handlers handlers)
 
 #### Parameters
 * **ssid**: Pointer to the name of the wifi network to connect to.
@@ -198,8 +203,65 @@ Constructor creates the class instance object and initiates internal resources.
   * *Data type*: Handlers
   * *Default value*: empty structure
 
+
+* **staticIp**: IP address to be set as static (fixed) one for the microcontroller. It consists from 4 octets in case of IPv4 addressing and is usually defined as compiler macro in a main sketch.
+  * *Data type*: IPAddress
+  * *Default value*: none
+
+
+* **gateway**: IP address of the gateway (router) in the network.
+  * *Data type*: IPAddress
+  * *Default value*: none
+
+
+* **subnet**: Subnet mask of the network. It consists from 4 octets in case of IPv4 addressing.
+  * *Data type*: IPAddress
+  * *Default value*: none
+
+
+* **primaryDns**: Optional IP address of the primary DNS server used. It can be the address of the gateway, if it ensures DNS connectivity.
+  * *Data type*: IPAddress
+  * *Default value*: empty address
+
+
+* **secondaryDns**: Optional IP address of the secondary DNS server used. It is empty, if the gateway ensures DNS connectivity.
+  * *Data type*: IPAddress
+  * *Default value*: empty address
+
 #### Returns
 Object performing connection and reconnection to the wifi network.
+
+#### Example
+For case with dynamic IP address assigned by a DHCP server:
+```cpp
+gbj_appwifi wifi = gbj_appwifi(WIFI_SSID, WIFI_PASS, WIFI_HOSTNAME, handlersWifi);
+```
+
+For case with static IP address assigned in the firmware and defined usually by compiler macros:
+```cpp
+gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
+                               WIFI_PASS,
+                               WIFI_HOSTNAME,
+                               IPAddress(IP_STATIC),
+                               IPAddress(IP_GATEWAY),
+                               IPAddress(IP_SUBNET),
+                               IPAddress(IP_DNS_PRIMARY),
+                               IPAddress(IP_DNS_SECONDARY),
+                               handlersWifi);
+```
+
+For case with static IP address assigned in the firmware and defined directly in a main sketch without DNS servers and handlers:
+```cpp
+gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
+                               WIFI_PASS,
+                               WIFI_HOSTNAME,
+                               IPAddress(192, 168, 0, 20),
+                               IPAddress(192, 168, 0, 1),
+                               IPAddress(255, 255, 255, 0));
+```
+
+#### See also
+[Handlers](#handlers)
 
 [Back to interface](#interface)
 
