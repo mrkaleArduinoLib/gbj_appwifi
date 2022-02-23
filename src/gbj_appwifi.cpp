@@ -1,5 +1,4 @@
 #include "gbj_appwifi.h"
-const String gbj_appwifi::VERSION = "GBJ_APPWIFI 1.3.0";
 
 gbj_appwifi::ResultCodes gbj_appwifi::connect()
 {
