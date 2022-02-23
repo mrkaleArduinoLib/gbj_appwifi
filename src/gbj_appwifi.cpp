@@ -114,10 +114,10 @@ gbj_appwifi::ResultCodes gbj_appwifi::mdns()
   {
     return setLastResult();
   }
-  // Start multicast DNS
+  SERIAL_ACTION("mDNS starting...")
   if (MDNS.begin(getHostname()))
   {
-    SERIAL_TITLE("mDNS started")
+    SERIAL_ACTION_END("Success")
     if (handlers_.onMdnsSuccess)
     {
       handlers_.onMdnsSuccess();
@@ -126,7 +126,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::mdns()
   }
   else
   {
-    SERIAL_TITLE("mDNS failed")
+    SERIAL_ACTION_END("Fail")
     if (handlers_.onMdnsFail)
     {
       handlers_.onMdnsFail();

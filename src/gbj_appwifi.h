@@ -40,7 +40,7 @@
 class gbj_appwifi : public gbj_appcore
 {
 public:
-  const String VERSION = "GBJ_APPWIFI 1.3.0";
+  const char *VERSION = "GBJ_APPWIFI 1.3.0";
 
   typedef void Handler();
 
