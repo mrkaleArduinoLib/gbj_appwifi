@@ -24,10 +24,10 @@ This is an application library, which is used usually as a project library for p
 Internal parameters are hard-coded in the library as enumerations and none of them have setters or getters associated.
 
 * **Period of waiting for next connection attempt** (`0.5 second`): It is a time period, during which the system is waiting in blocking mode for next attempt to connect to wifi.
-* **Number of failed connection attempts in the connection set** (`20`): It is a countdown for failed connections to wifi at blocking waiting. After reaching this number of connection fails, which represents a connection set, the library starts waiting for next set, but without blocking the system.
+* **Number of failed connection attempts in the connection set** (`20`): It is a countdown for failed connections to wifi at blocking waiting. After reaching this number of connection fails, which represents a connection set, the library starts waiting for next set, but without blocking the system. The time period among failed connection sets is by default `10 seconds`.
 * **Period of waiting for next connection set** (`1 minute`): It is a time period since recent failed connection attempt of recent connection set, during which the system is waiting in non-blocking mode for next connection set of attempts.
 When the microcontroller is connected to WiFi network, it is the time period for updating its IP address.
-* **Number of failed connection sets** (`3`): It is a countdown for failed connection sets to wifi at non-blocking waiting. After reaching this number of connection sets, which represents a connection cycle, the library restarts the microcontroller.
+* **Number of failed connection sets** (`3`): It is a countdown for failed connection sets to wifi at non-blocking waiting. After reaching this number of connection sets, which represents a connection cycle, the library restarts the microcontroller. The time period among failed connection cycles is by default `3 minutes and 30 seconds`.
 * **Number of MCU restarts** (`3`): It is number of restarts of the microcontroller, after which the library starts waiting for next connection cycle.
 * **Period of waiting for next connection cycle** (`1 hour`): It is a time period since recent microcontroller restart of recent failed connection cycle, during which the system is waiting in non-blocking mode for next cycle of connections.
 
@@ -35,13 +35,13 @@ When the microcontroller is connected to WiFi network, it is the time period for
 <a id="connection"></a>
 
 ## Connection process
-The connection process is composed of 3 level aiming to be robust. It gives the chance either the microcontroller itself or the WiFi Access Point to recover from failure and when connect automatically. The connection process is controlled by [internal parameters](#internals).
+The connection process is composed of 3 levels aiming to be robust. It gives the chance either the microcontroller itself or the WiFi <abbr title="Access Point">AP</abbr> to recover from failure and when to connect automatically. The connection process is controlled by [internal parameters](#internals).
 
-1. **Set of connection attemps**. It is a number of subsequent failed connection attemps. The library tries to connect to AP. If it fails, it starts waiting in blocking mode for next attempt. If predefined number of connection attemps fails, the library starts waiting for next connection set. The connection set with waiting periods among connection attempts allow the microcontroller to consolidate its internals to establish connection. If a connection attemp is successful, the library breaks entire connection process and goes to connection checking mode.
+1. **Set of connection attemps**. It is a number of subsequent failed connection attemps. The library tries to connect to <abbr title="Access Point">AP</abbr>. If it fails, it starts waiting in blocking mode for next attempt. If predefined number of connection attemps fails, the library starts waiting for next connection set. The connection set with waiting periods among connection attempts allow the microcontroller to consolidate its internals to establish connection. If a connection attemp is successful, the library breaks entire connection process and goes to connection checking mode.
 
-2. **Cycle of connection sets**. It is a number of subsequent failed connection sets. After failed connection set the library restart the microcontroller and starts new connection cycle. If predefined number of connection cycles (microcontroller restarts) fails, the library starts waiting for next connection cycle. The connection cycle with waiting periods among connection sets allow the microcontroller to wait for a network WiFi router or access point to consolidate, restart, or so.
+2. **Cycle of connection sets**. It is a number of subsequent failed connection sets. After failed connection set the library restarts the microcontroller and starts new connection cycle. If predefined number of connection cycles (microcontroller restarts) fails, the library starts waiting for next connection cycle. The connection cycle with waiting periods among connection sets allow the microcontroller to wait for a network WiFi router or <abbr title="Access Point">AP</abbr> to consolidate, restart, or so.
 
-3. **Reccurent connection cycles**. It is a repeating processing of previous two levels of connection process. If a connection cycle fails, the library starts waiting for repeating connection process described before. The waiting period among connection cycles allow to manually resolve potential problems with a WiFi router or access point, its configuration, restarting, or so.
+3. **Reccurent connection cycles**. It is a repeating processing of previous two levels of the connection process. If a connection cycle fails, the library starts waiting for repeating connection process described before. The waiting period among connection cycles allow to manually resolve potential problems with a WiFi router or <abbr title="Access Point">AP</abbr>, its configuration, restarting, or so.
 
 
 <a id="dependency"></a>
