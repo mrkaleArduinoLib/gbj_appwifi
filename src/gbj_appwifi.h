@@ -21,10 +21,8 @@
 #if defined(ESP8266)
   #include <Arduino.h>
   #include <ESP8266WiFi.h>
-  #include <ESP8266mDNS.h>
 #elif defined(ESP32)
   #include <Arduino.h>
-  #include <ESPmDNS.h>
   #include <WiFi.h>
 #elif defined(PARTICLE)
   #include <Particle.h>
@@ -40,7 +38,7 @@
 class gbj_appwifi : public gbj_appcore
 {
 public:
-  const char *VERSION = "GBJ_APPWIFI 1.3.0";
+  const char *VERSION = "GBJ_APPWIFI 1.5.0";
 
   typedef void Handler();
 
@@ -52,8 +50,6 @@ public:
     Handler *onConnectFail;
     Handler *onDisconnect;
     Handler *onRestart;
-    Handler *onMdnsSuccess;
-    Handler *onMdnsFail;
   };
 
   /*
@@ -71,7 +67,7 @@ public:
       - Data type: constant string
       - Default value: none
       - Limited range: none
-    hostname - The hostname for a device on the network and mDNS.
+    hostname - The hostname for a device on the network.
       - Data type: constant string
       - Default value: none
       - Limited range: none
@@ -126,15 +122,10 @@ public:
   */
   inline void run()
   {
-    if (isConnected())
-    {
-      MDNS.update();
-    }
-    else
+    if (!isConnected())
     {
       connect();
     }
-    mdns();
   }
 
   // Setters
@@ -142,7 +133,6 @@ public:
 
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
-  inline bool isMdns() { return MDNS.isRunning(); }
   inline byte getFails() { return status_.fails; }
   inline byte getRestarts() { return status_.restarts; }
   inline int getRssi() { return WiFi.RSSI(); }
@@ -198,7 +188,6 @@ private:
   char addressMac_[18];
   Handlers handlers_;
   ResultCodes connect();
-  ResultCodes mdns();
   inline void setAddressIp()
   {
     strcpy(addressIp_, WiFi.localIP().toString().c_str());

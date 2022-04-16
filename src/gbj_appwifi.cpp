@@ -107,30 +107,3 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   }
   return getLastResult();
 }
-
-gbj_appwifi::ResultCodes gbj_appwifi::mdns()
-{
-  if (!isConnected() || MDNS.isRunning())
-  {
-    return setLastResult();
-  }
-  SERIAL_ACTION("mDNS starting...")
-  if (MDNS.begin(getHostname()))
-  {
-    SERIAL_ACTION_END("Success")
-    if (handlers_.onMdnsSuccess)
-    {
-      handlers_.onMdnsSuccess();
-    }
-    return setLastResult();
-  }
-  else
-  {
-    SERIAL_ACTION_END("Fail")
-    if (handlers_.onMdnsFail)
-    {
-      handlers_.onMdnsFail();
-    }
-    return setLastResult(ResultCodes::ERROR_CONNECT);
-  }
-}
