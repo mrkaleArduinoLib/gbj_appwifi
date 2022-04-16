@@ -12,18 +12,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
       handlers_.onDisconnect();
     }
   }
-  // Wait for mcu restart recovery period.
-  // Expected restoring an access point after external wifi failure.
-  // Ignore period, if the mcu has not been reset by software, e.g., by reset
-  // button or firmware upload.
-  if (getResetReason() == gbj_appwifi::BOOT_SOFT_RESTART &&
-      status_.restarts >= Params::PARAM_RESTARTS &&
-      millis() < Timing::PERIOD_CYCLE)
-  {
-    return setLastResult(ResultCodes::ERROR_NOINIT);
-  }
   // Wait for recovery period after failed connection
-  if (status_.tsRetry && millis() - status_.tsRetry < Timing::PERIOD_SET)
+  if (status_.tsRetry && (millis() - status_.tsRetry) < Timing::PERIOD_SET)
   {
     return setLastResult(ResultCodes::ERROR_NOINIT);
   }
@@ -95,8 +85,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     // Restart MCU
     if (status_.fails >= Params::PARAM_FAILS)
     {
-      status_.restarts++;
-      SERIAL_VALUE("Restart", status_.restarts)
+      SERIAL_TITLE("Restart")
       if (handlers_.onRestart)
       {
         handlers_.onRestart();

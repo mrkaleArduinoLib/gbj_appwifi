@@ -128,13 +128,9 @@ public:
     }
   }
 
-  // Setters
-  inline void setRestarts(byte restarts) { status_.restarts = restarts; }
-
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
   inline byte getFails() { return status_.fails; }
-  inline byte getRestarts() { return status_.restarts; }
   inline int getRssi() { return WiFi.RSSI(); }
   inline const char *getAddressIp() { return addressIp_; }
   inline const char *getAddressMac() { return addressMac_; }
@@ -148,13 +144,11 @@ private:
   {
     PERIOD_FAIL = 500,
     PERIOD_SET = 1 * 60 * 1000,
-    PERIOD_CYCLE = 1 * 60 * 60 * 1000,
   };
   enum Params : byte
   {
     PARAM_TRIES = 20,
-    PARAM_FAILS = 3,
-    PARAM_RESTARTS = 3,
+    PARAM_FAILS = 6,
   };
   struct Wifi
   {
@@ -169,7 +163,7 @@ private:
   } wifi_;
   struct Status
   {
-    byte fails, restarts;
+    byte fails;
     unsigned long tsRetry;
     bool flConnGain;
     void reset()
@@ -180,7 +174,7 @@ private:
     void init()
     {
       reset();
-      fails = restarts = 0;
+      fails = 0;
       flConnGain = true;
     }
   } status_;

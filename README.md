@@ -12,10 +12,10 @@ This is an application library, which is used usually as a project library for p
 
 
 ## Fundamental functionality
-* The library enables set a static (fixed) IP address of the microcontroller.
+* The library enables to set a static (fixed) IP address of the microcontroller.
 * The connection to wifi is checked at every loop of a main sketch.
 * If no connection to wifi is detected, the library starts the [connection process](#connection).
-* The library activates multicast DNS right after wifi connection.
+* The library does not support multicast DNS on purpose, because it appeared as unreliable in praxis.
 
 
 <a id="internals"></a>
@@ -27,21 +27,17 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * **Number of failed connection attempts in the connection set** (`20`): It is a countdown for failed connections to wifi at blocking waiting. After reaching this number of connection fails, which represents a connection set, the library starts waiting for next set, but without blocking the system. The time period among failed connection sets is by default `10 seconds`.
 * **Period of waiting for next connection set** (`1 minute`): It is a time period since recent failed connection attempt of recent connection set, during which the system is waiting in non-blocking mode for next connection set of attempts.
 When the microcontroller is connected to WiFi network, it is the time period for updating its IP address.
-* **Number of failed connection sets** (`3`): It is a countdown for failed connection sets to wifi at non-blocking waiting. After reaching this number of connection sets, which represents a connection cycle, the library restarts the microcontroller. The time period among failed connection cycles is by default `3 minutes and 30 seconds`.
-* **Number of MCU restarts** (`3`): It is number of restarts of the microcontroller, after which the library starts waiting for next connection cycle.
-* **Period of waiting for next connection cycle** (`1 hour`): It is a time period since recent microcontroller restart of recent failed connection cycle, during which the system is waiting in non-blocking mode for next cycle of connections.
+* **Number of failed connection sets** (`6`): It is a countdown for failed connection sets to wifi at non-blocking waiting. After reaching this number of connection sets, which represents a connection cycle, the library restarts the microcontroller. The time period among failed connection cycles is by default `7 minutes`, i.e. 6 minutes and 60 seconds.
 
 
 <a id="connection"></a>
 
 ## Connection process
-The connection process is composed of 3 levels aiming to be robust. It gives the chance either the microcontroller itself or the WiFi <abbr title="Access Point">AP</abbr> to recover from failure and when to connect automatically. The connection process is controlled by [internal parameters](#internals).
+The connection process is composed of 2 levels aiming to be robust. It gives the chance either the microcontroller itself or the WiFi <abbr title="Access Point">AP</abbr> to recover from failure and when to connect automatically. The connection process is controlled by [internal parameters](#internals).
 
 1. **Set of connection attemps**. It is a number of subsequent failed connection attemps. The library tries to connect to <abbr title="Access Point">AP</abbr>. If it fails, it starts waiting in blocking mode for next attempt. If predefined number of connection attemps fails, the library starts waiting for next connection set. The connection set with waiting periods among connection attempts allow the microcontroller to consolidate its internals to establish connection. If a connection attemp is successful, the library breaks entire connection process and goes to connection checking mode.
 
-2. **Cycle of connection sets**. It is a number of subsequent failed connection sets. After failed connection set the library restarts the microcontroller and starts new connection cycle. If predefined number of connection cycles (microcontroller restarts) fails, the library starts waiting for next connection cycle. The connection cycle with waiting periods among connection sets allow the microcontroller to wait for a network WiFi router or <abbr title="Access Point">AP</abbr> to consolidate, restart, or so.
-
-3. **Reccurent connection cycles**. It is a repeating processing of previous two levels of the connection process. If a connection cycle fails, the library starts waiting for repeating connection process described before. The waiting period among connection cycles allow to manually resolve potential problems with a WiFi router or <abbr title="Access Point">AP</abbr>, its configuration, restarting, or so.
+2. **Cycle of connection sets**. It is a number of subsequent failed _sets of connection attemps_. After failed connection set the library restarts the microcontroller and starts new connection cycle.
 
 
 <a id="dependency"></a>
@@ -54,12 +50,10 @@ The connection process is composed of 3 levels aiming to be robust. It gives the
 #### Espressif ESP8266 platform
 * **Arduino.h**: Main include file for the Arduino platform.
 * **ESP8266WiFi.h**: Main include file for the wifi connection.
-* **ESP8266mDNS.h**: Main include file for the mDNS.
 
 #### Espressif ESP32 platform
 * **Arduino.h**: Main include file for the Arduino platform.
 * **WiFi.h**: Main include file for the wifi connection.
-* **ESPmDNS.h**: Main include file for the mDNS.
 
 #### Particle platform
 * **Particle.h**: Includes alternative (C++) data type definitions.
@@ -84,15 +78,12 @@ Other constants, enumerations, result codes, and error codes are inherited from 
 ## Interface
 * [gbj_appwifi()](#gbj_appwifi)
 * [run()](#run)
-* [setRestarts()](#setRestarts)
-* [getRestarts()](#getRestarts)
 * [getHostname()](#getHostname)
 * [getAddressIp()](#getAddressIp)
 * [getAddressMac()](#getAddressMac)
 * [getRssi()](#getRssi)
 * [getFails()](#getFails)
 * [isConnected()](#isConnected)
-* [isMdns()](#isMdns)
 
 
 <a id="handler"></a>
@@ -136,8 +127,6 @@ Structure of pointers to handlers each for particular event in processing.
       Handler *onConnectFail;
       Handler *onDisconnect;
       Handler *onRestart;
-      Handler *onMdnsSuccess;
-      Handler *onMdnsFail;
     }
 
 #### Parameters
@@ -147,8 +136,6 @@ Structure of pointers to handlers each for particular event in processing.
 * **onConnectFail**: Pointer to a callback function, which is called right after failed connection set.
 * **onDisconnect**: Pointer to a callback function, which is called at lost of connection to wifi. It allows to create an alarm or a signal about it.
 * **onRestart**: Pointer to a callback function, which is called right before microcontroller restart. It allows to do some actions related to it, e.g., increment and save number of restarts to the EEPROM.
-* **onMdnsSuccess**: Pointer to a callback function, which is called right after successful starting mDNS service.
-* **onMdnsFail**: Pointer to a callback function, which is called right after failed starting mDNS service.
 
 #### Example
 ```cpp
@@ -194,7 +181,7 @@ Overloaded constructor creates the class instance object and initiates internal 
   * *Default value*: none
 
 
-* **hostname**: Pointer to the hostname for a device on the network as well as for the mDNS domain.
+* **hostname**: Pointer to the hostname for a device on the network.
   * *Valid values*: constant pointer to string
   * *Default value*: none
 
@@ -275,55 +262,6 @@ The execution method should be called frequently, usually in the loop function o
 * The method connects to the wifi network at the very first calling it and reconnects to it if neccesary.
 * After successful connection the method activates multicast DNS.
 * If the serial connection is active, the library outputs flow of the connection and at success lists basic parameters of the connection to wifi.
-
-[Back to interface](#interface)
-
-
-<a id="setRestarts"></a>
-
-## setRestarts()
-
-#### Description
-The method receiving the number of the previous microcontroller restarts in a pending failed connection process.
-* It is internally used for evaluating in connection process and incremented or reset, if needed.
-* It is usually read from the EEPROM.
-
-#### Syntax
-    void setRestarts(byte restarts)
-
-#### Parameters
-* **restarts**: Number of microcontroller restarts in a pending failed connection process.
-  * *Valid values*: 0 ~ 255
-  * *Default value*: none
-
-#### Returns
-None
-
-#### See also
-[getRestarts()](#getRestarts)
-
-[Back to interface](#interface)
-
-
-<a id="getRestarts"></a>
-
-## getRestarts()
-
-#### Description
-The method returns the number of the microcontroller restarts in a pending failed connection process.
-* It might be used in appropriate handler(s) for statistics or storing in the EEPROM.
-
-#### Syntax
-    byte getRestarts()
-
-#### Parameters
-None
-
-#### Returns
-Number of microcontroller restarts in pending failed connection process.
-
-#### See also
-[setRestarts()](#setRestarts)
 
 [Back to interface](#interface)
 
@@ -457,24 +395,5 @@ None
 
 #### Returns
 Flag about connecting status to wifi.
-
-[Back to interface](#interface)
-
-
-<a id="isMdns"></a>
-
-## isMdns()
-
-#### Description
-The method returns a flag whether the microcontroller has successfully start the mDNS service.
-
-#### Syntax
-    bool isMdns()
-
-#### Parameters
-None
-
-#### Returns
-Flag about starting mDNS service on a network.
 
 [Back to interface](#interface)
