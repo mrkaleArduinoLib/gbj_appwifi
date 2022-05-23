@@ -1,12 +1,13 @@
 {
   "name": "gbj_appwifi",
-  "keywords": "application",
+  "version": "1.5.0",
   "description": "Library executes and manages connection to a WiFi network.",
+  "keywords": "application",
   "repository": {
     "type": "git",
     "url": "https://github.com/mrkaleArduinoLib/gbj_appwifi.git"
   },
-  "version": "1.5.0",
+  "license": "MIT",
   "frameworks": "arduino",
   "platforms": [
     "espressif8266",
