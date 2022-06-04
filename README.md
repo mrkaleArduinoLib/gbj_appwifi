@@ -135,7 +135,7 @@ Structure of pointers to handlers each for particular event in processing.
 * **onConnectSuccess**: Pointer to a callback function, which is called right after successful connection to wifi.
 * **onConnectFail**: Pointer to a callback function, which is called right after failed connection set.
 * **onDisconnect**: Pointer to a callback function, which is called at lost of connection to wifi. It allows to create an alarm or a signal about it.
-* **onRestart**: Pointer to a callback function, which is called right before microcontroller restart. It allows to do some actions related to it, e.g., increment and save number of restarts to the EEPROM.
+* **onRestart**: Pointer to a callback function, which is called right before microcontroller restarts. It allows to do some actions related to it, e.g., increment and save number of restarts to the EEPROM.
 
 #### Example
 ```cpp
