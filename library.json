@@ -1,6 +1,6 @@
 {
   "name": "gbj_appwifi",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Library executes and manages connection to a WiFi network.",
   "keywords": "application",
   "repository": {

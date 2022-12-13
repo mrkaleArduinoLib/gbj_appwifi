@@ -38,7 +38,7 @@
 class gbj_appwifi : public gbj_appcore
 {
 public:
-  const char *VERSION = "GBJ_APPWIFI 1.5.1";
+  const char *VERSION = "GBJ_APPWIFI 1.6.0";
 
   typedef void Handler();
 
@@ -56,7 +56,8 @@ public:
     Constructor
 
     DESCRIPTION:
-    Constructor creates the class instance object and sets credentials for wifi.
+    Constructor creates the class instance object and sets credentials for
+    wifi.
 
     PARAMETERS:
     ssid - The name of a wifi network to connect to.
@@ -71,7 +72,8 @@ public:
       - Data type: constant string
       - Default value: none
       - Limited range: none
-    handlers - A structure with pointers to various callback handler functions.
+    handlers - A structure with pointers to various callback handler
+    functions.
       - Data type: Handlers
       - Default value: structure with zeroed all handlers
       - Limited range: system address range

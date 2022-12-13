@@ -21,7 +21,6 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // WiFi.persistent(false);
   // WiFi.mode(WIFI_OFF); // Try this only if device cannot connect to AP
   WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
   WiFi.hostname(wifi_.hostname);
   if (wifi_.staticIp)
   {
@@ -60,7 +59,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
     SERIAL_VALUE("IP", WiFi.localIP())
     SERIAL_VALUE("MAC", getAddressMac())
-    WiFi.setAutoReconnect(true);
+    WiFi.setAutoReconnect(false);
     WiFi.persistent(true);
     status_.init();
     if (handlers_.onConnectSuccess)
@@ -76,7 +75,6 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     status_.fails++;
     SERIAL_ACTION_END("Fail")
     SERIAL_VALUE("fails", status_.fails)
-    // WiFi.disconnect();
     // WiFi.mode(WIFI_OFF);
     if (handlers_.onConnectFail)
     {
