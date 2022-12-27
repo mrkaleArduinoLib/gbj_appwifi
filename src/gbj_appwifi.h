@@ -38,7 +38,7 @@
 class gbj_appwifi : public gbj_appcore
 {
 public:
-  const char *VERSION = "GBJ_APPWIFI 1.6.0";
+  const char *VERSION = "GBJ_APPWIFI 1.7.0";
 
   typedef void Handler();
 
@@ -128,6 +128,17 @@ public:
     {
       connect();
     }
+  }
+
+  inline void params()
+  {
+    setAddressIp();
+    setAddressMac();
+    SERIAL_VALUE("IP", WiFi.localIP())
+    SERIAL_VALUE("MAC", getAddressMac())
+    SERIAL_VALUE("SSID", wifi_.ssid)
+    SERIAL_VALUE("Hostname", wifi_.hostname)
+    SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
   }
 
   // Getters

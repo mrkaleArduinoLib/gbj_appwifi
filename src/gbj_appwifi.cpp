@@ -35,7 +35,7 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   {
     handlers_.onConnectStart();
   }
-  SERIAL_ACTION("Connection to AP...")
+  SERIAL_VALUE("Connecting to", wifi_.ssid)
   byte counter = Params::PARAM_TRIES;
   while (WiFi.status() != WL_CONNECTED && counter--)
   {
@@ -49,16 +49,11 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   // Successful connection
   if (WiFi.status() == WL_CONNECTED)
   {
-    setAddressIp();
-    setAddressMac();
-    SERIAL_ACTION_END("Success")
+    SERIAL_LINE
+    SERIAL_VALUE("Connection", "Success")
+    params();
     SERIAL_VALUE("tries", Params::PARAM_TRIES - counter + 1)
     SERIAL_VALUE("fails", status_.fails)
-    SERIAL_VALUE("SSID", wifi_.ssid)
-    SERIAL_VALUE("Hostname", wifi_.hostname)
-    SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
-    SERIAL_VALUE("IP", WiFi.localIP())
-    SERIAL_VALUE("MAC", getAddressMac())
     WiFi.setAutoReconnect(false);
     WiFi.persistent(true);
     status_.init();
@@ -73,7 +68,8 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
   {
     status_.tsRetry = millis();
     status_.fails++;
-    SERIAL_ACTION_END("Fail")
+    SERIAL_LINE
+    SERIAL_VALUE("Connection", "Fail")
     SERIAL_VALUE("fails", status_.fails)
     // WiFi.mode(WIFI_OFF);
     if (handlers_.onConnectFail)
