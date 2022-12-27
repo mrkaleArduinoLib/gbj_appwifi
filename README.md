@@ -23,11 +23,10 @@ This is an application library, which is used usually as a project library for p
 ## Internal parameters
 Internal parameters are hard-coded in the library as enumerations and none of them have setters or getters associated.
 
-* **Period of waiting for next connection attempt** (`0.5 second`): It is a time period, during which the system is waiting in blocking mode for next attempt to connect to wifi.
-* **Number of failed connection attempts in the connection set** (`20`): It is a countdown for failed connections to wifi at blocking waiting. After reaching this number of connection fails, which represents a connection set, the library starts waiting for next set, but without blocking the system. The time period among failed connection sets is by default `10 seconds`.
+* **Period of waiting for next connection attempt** (`0.5 second`): It is a time period, during which the system is waiting for next attempt in blocking mode to connect to wifi.
+* **Number of failed connection attempts in the connection set** (`30`): It is a countdown for failed connections to wifi at blocking waiting. After reaching this number of connection fails, which represents a connection set, the library starts waiting for next set, but without blocking the system.
 * **Period of waiting for next connection set** (`1 minute`): It is a time period since recent failed connection attempt of recent connection set, during which the system is waiting in non-blocking mode for next connection set of attempts.
-When the microcontroller is connected to WiFi network, it is the time period for updating its IP address.
-* **Number of failed connection sets** (`6`): It is a countdown for failed connection sets to wifi at non-blocking waiting. After reaching this number of connection sets, which represents a connection cycle, the library restarts the microcontroller. The time period among failed connection cycles is by default `7 minutes`, i.e. 6 minutes and 60 seconds.
+* **Number of failed connection sets** (`6`): It is a countdown for failed connection sets to wifi at non-blocking waiting. After reaching this number of failed connection sets, which represents a connection cycle, the library restarts the microcontroller.
 
 
 <a id="connection"></a>
@@ -78,6 +77,7 @@ Other constants, enumerations, result codes, and error codes are inherited from 
 ## Interface
 * [gbj_appwifi()](#gbj_appwifi)
 * [run()](#run)
+* [params()](#params)
 * [getHostname()](#getHostname)
 * [getAddressIp()](#getAddressIp)
 * [getAddressMac()](#getAddressMac)
@@ -260,8 +260,36 @@ gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
 #### Description
 The execution method should be called frequently, usually in the loop function of a sketch.
 * The method connects to the wifi network at the very first calling it and reconnects to it if neccesary.
-* After successful connection the method activates multicast DNS.
 * If the serial connection is active, the library outputs flow of the connection and at success lists basic parameters of the connection to wifi.
+
+#### Syntax
+    void run()
+
+#### Parameters
+None
+
+#### Returns
+None
+
+[Back to interface](#interface)
+
+
+<a id="params"></a>
+
+## params()
+
+#### Description
+The method calculates IP and MAC addresses and fills corresponding buffers.
+* In debug mode it displays relevant connection parametes for serial monitoring.
+
+#### Syntax
+    void params()
+
+#### Parameters
+None
+
+#### Returns
+None
 
 [Back to interface](#interface)
 

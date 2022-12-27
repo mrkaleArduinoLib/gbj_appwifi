@@ -38,7 +38,7 @@
 class gbj_appwifi : public gbj_appcore
 {
 public:
-  const char *VERSION = "GBJ_APPWIFI 1.7.0";
+  const char *VERSION = "GBJ_APPWIFI 1.8.0";
 
   typedef void Handler();
 
@@ -130,6 +130,16 @@ public:
     }
   }
 
+  /*
+    Parameters
+
+    DESCRIPTION:
+    The method calculates IP and MAC addresses and fills corresponding buffers.
+
+    PARAMETERS: None
+
+    RETURN: none
+  */
   inline void params()
   {
     setAddressIp();
@@ -160,7 +170,7 @@ private:
   };
   enum Params : byte
   {
-    PARAM_TRIES = 20,
+    PARAM_TRIES = 30,
     PARAM_FAILS = 6,
   };
   struct Wifi
