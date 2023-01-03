@@ -25,8 +25,7 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 
 * **Period of waiting for next connection attempt** (`0.5 second`): It is a time period, during which the system is waiting for next attempt in blocking mode to connect to wifi.
 * **Number of failed connection attempts in the connection set** (`30`): It is a countdown for failed connections to wifi at blocking waiting. After reaching this number of connection fails, which represents a connection set, the library starts waiting for next set, but without blocking the system.
-* **Period of waiting for next connection set** (`1 minute`): It is a time period since recent failed connection attempt of recent connection set, during which the system is waiting in non-blocking mode for next connection set of attempts.
-* **Number of failed connection sets** (`6`): It is a countdown for failed connection sets to wifi at non-blocking waiting. After reaching this number of failed connection sets, which represents a connection cycle, the library restarts the microcontroller.
+* **Period of waiting for next connection set** (`1 minute`): It is a time period since recent failed connection attempt of recent connection set, during which the system is waiting in non-blocking mode for next connection set of attempts. The time interval between failed connection cycles inludes the duration of connection set, so it is `1m + 30 * 0.5s = 75s`.
 
 
 <a id="connection"></a>
@@ -34,9 +33,9 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 ## Connection process
 The connection process is composed of 2 levels aiming to be robust. It gives the chance either the microcontroller itself or the WiFi <abbr title="Access Point">AP</abbr> to recover from failure and when to connect automatically. The connection process is controlled by [internal parameters](#internals).
 
-1. **Set of connection attemps**. It is a number of subsequent failed connection attemps. The library tries to connect to <abbr title="Access Point">AP</abbr>. If it fails, it starts waiting in blocking mode for next attempt. If predefined number of connection attemps fails, the library starts waiting for next connection set. The connection set with waiting periods among connection attempts allow the microcontroller to consolidate its internals to establish connection. If a connection attemp is successful, the library breaks entire connection process and goes to connection checking mode.
+1. **Set of connection attemps**. It is a number of subsequent failed connection attemps, where the microcontroller tries to connect to <abbr title="Access Point">AP</abbr>. If an attempt fails, it starts waiting in blocking mode for next attempt. If predefined number of connection attemps fails, the library starts waiting for next connection set, i.e., start new connection cycle. The connection set with waiting periods among connection attempts allow the microcontroller to consolidate its internals to establish connection. If a connection attemp is successful, the library breaks entire connection process and goes to connection checking mode.
 
-2. **Cycle of connection sets**. It is a number of subsequent failed _sets of connection attemps_. After failed connection set the library restarts the microcontroller and starts new connection cycle.
+2. **Cycle of connection sets**. It is a new set of connection attemps after waiting for a predefined [internal Period of waiting for next connection set](#internals). This time interal allows to consolidate the wifi connection, e.g., restart wifi router. It is up to an application and/or an external watchdog timer to restart the microcontroller after some failed connection cycles.
 
 
 <a id="dependency"></a>
@@ -135,7 +134,6 @@ Structure of pointers to handlers each for particular event in processing.
 * **onConnectSuccess**: Pointer to a callback function, which is called right after successful connection to wifi.
 * **onConnectFail**: Pointer to a callback function, which is called right after failed connection set.
 * **onDisconnect**: Pointer to a callback function, which is called at lost of connection to wifi. It allows to create an alarm or a signal about it.
-* **onRestart**: Pointer to a callback function, which is called right before microcontroller restarts. It allows to do some actions related to it, e.g., increment and save number of restarts to the EEPROM.
 
 #### Example
 ```cpp
@@ -394,7 +392,7 @@ Current wifi signal strength of the microcontroller in _dBm_.
 
 #### Description
 The method returns the number of failed connection sets during a failed connection cycle until the successful connection.
-* It might be usef for some statistics in appropriate handler(s).
+* It might be useful for some statistics in appropriate handler(s).
 
 #### Syntax
     byte getFails()

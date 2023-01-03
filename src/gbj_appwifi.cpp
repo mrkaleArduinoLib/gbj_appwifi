@@ -12,14 +12,12 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
       handlers_.onDisconnect();
     }
   }
-  // Wait for recovery period after failed connection
-  if (status_.tsRetry && (millis() - status_.tsRetry) < Timing::PERIOD_SET)
+  // Wait for connection
+  if (status_.tsRetry && (millis() - status_.tsRetry) < Timing::PERIOD_CONN)
   {
     return setLastResult(ResultCodes::ERROR_NOINIT);
   }
-  // WiFi fix: https://github.com/esp8266/Arduino/issues/2186
-  // WiFi.persistent(false);
-  // WiFi.mode(WIFI_OFF); // Try this only if device cannot connect to AP
+  // Start connection
   WiFi.mode(WIFI_STA);
   WiFi.hostname(wifi_.hostname);
   if (wifi_.staticIp)
@@ -71,20 +69,9 @@ gbj_appwifi::ResultCodes gbj_appwifi::connect()
     SERIAL_LINE
     SERIAL_VALUE("Connection", "Fail")
     SERIAL_VALUE("fails", status_.fails)
-    // WiFi.mode(WIFI_OFF);
     if (handlers_.onConnectFail)
     {
       handlers_.onConnectFail();
-    }
-    // Restart MCU
-    if (status_.fails >= Params::PARAM_FAILS)
-    {
-      SERIAL_TITLE("Restart")
-      if (handlers_.onRestart)
-      {
-        handlers_.onRestart();
-      }
-      ESP.restart();
     }
     setLastResult(ResultCodes::ERROR_CONNECT);
   }

@@ -29,7 +29,7 @@
 #else
   #error !!! Only platforms with WiFi are suppored !!!
 #endif
-#include "gbj_appbase.h"
+#include "gbj_appcore.h"
 #include "gbj_serial_debug.h"
 
 #undef SERIAL_PREFIX
@@ -38,7 +38,7 @@
 class gbj_appwifi : public gbj_appcore
 {
 public:
-  const char *VERSION = "GBJ_APPWIFI 1.8.0";
+  const char *VERSION = "GBJ_APPWIFI 1.9.0";
 
   typedef void Handler();
 
@@ -49,7 +49,6 @@ public:
     Handler *onConnectSuccess;
     Handler *onConnectFail;
     Handler *onDisconnect;
-    Handler *onRestart;
   };
 
   /*
@@ -166,12 +165,11 @@ private:
   enum Timing : unsigned long
   {
     PERIOD_FAIL = 500,
-    PERIOD_SET = 1 * 60 * 1000,
+    PERIOD_CONN = 1 * 60 * 1000,
   };
   enum Params : byte
   {
     PARAM_TRIES = 30,
-    PARAM_FAILS = 6,
   };
   struct Wifi
   {
