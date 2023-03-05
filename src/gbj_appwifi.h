@@ -38,18 +38,7 @@
 class gbj_appwifi : public gbj_appcore
 {
 public:
-  const char *VERSION = "GBJ_APPWIFI 1.9.0";
-
-  typedef void Handler();
-
-  struct Handlers
-  {
-    Handler *onConnectStart;
-    Handler *onConnectTry;
-    Handler *onConnectSuccess;
-    Handler *onConnectFail;
-    Handler *onDisconnect;
-  };
+  const char *VERSION = "GBJ_APPWIFI 1.10.0";
 
   /*
     Constructor
@@ -71,23 +60,17 @@ public:
       - Data type: constant string
       - Default value: none
       - Limited range: none
-    handlers - A structure with pointers to various callback handler
-    functions.
-      - Data type: Handlers
-      - Default value: structure with zeroed all handlers
-      - Limited range: system address range
 
     RETURN: object
   */
   inline gbj_appwifi(const char *ssid,
                      const char *pass,
-                     const char *hostname,
-                     Handlers handlers = Handlers())
+                     const char *hostname)
   {
     wifi_.ssid = ssid;
     wifi_.pass = pass;
     wifi_.hostname = hostname;
-    handlers_ = handlers;
+    status_.init();
   }
   inline gbj_appwifi(const char *ssid,
                      const char *pass,
@@ -96,18 +79,14 @@ public:
                      const IPAddress gateway,
                      const IPAddress subnet,
                      const IPAddress primaryDns = IPAddress(),
-                     const IPAddress secondaryDns = IPAddress(),
-                     Handlers handlers = Handlers())
+                     const IPAddress secondaryDns = IPAddress())
+    : gbj_appwifi(ssid, pass, hostname)
   {
-    wifi_.ssid = ssid;
-    wifi_.pass = pass;
-    wifi_.hostname = hostname;
     wifi_.staticIp = staticIp;
     wifi_.gateway = gateway;
     wifi_.subnet = subnet;
     wifi_.primaryDns = primaryDns;
     wifi_.secondaryDns = secondaryDns;
-    handlers_ = handlers;
   }
 
   /*
@@ -121,26 +100,24 @@ public:
 
     RETURN: none
   */
-  inline void run()
-  {
-    if (!isConnected())
-    {
-      connect();
-    }
-  }
+  inline void run() { connect(); }
 
   /*
-    Parameters
+    Activity at connection success
 
     DESCRIPTION:
-    The method calculates IP and MAC addresses and fills corresponding buffers.
+    The method should be called in "WiFiEventHandler" for event
+    "WiFiEventStationModeGotIP".
 
     PARAMETERS: None
 
     RETURN: none
   */
-  inline void params()
+  void connectSuccess()
   {
+    SERIAL_LINE
+    SERIAL_VALUE("connectSuccess()", getStatus())
+    status_.tsEvent = millis();
     setAddressIp();
     setAddressMac();
     SERIAL_VALUE("IP", WiFi.localIP())
@@ -148,28 +125,114 @@ public:
     SERIAL_VALUE("SSID", wifi_.ssid)
     SERIAL_VALUE("Hostname", wifi_.hostname)
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
+    WiFi.setAutoReconnect(false);
+    WiFi.persistent(false);
+    status_.init();
+    SERIAL_DELIM
+  }
+
+  /*
+    Activity at connection failure
+
+    DESCRIPTION:
+    The method should be called in "WiFiEventHandler" for event
+    "WiFiEventStationModeDisconnected".
+
+    PARAMETERS: None
+
+    RETURN: none
+  */
+  void connectFail()
+  {
+    SERIAL_LINE
+    SERIAL_VALUE("connectFail()", getStatus())
+    status_.flLoop = false;
+    switch (WiFi.status())
+    {
+      case WL_DISCONNECTED:
+        status_.timeWait = Timing::PERIOD_CONNECT;
+        break;
+      case WL_IDLE_STATUS:
+      case WL_CONNECTION_LOST:
+        status_.init();
+        break;
+      case WL_NO_SSID_AVAIL:
+      case WL_WRONG_PASSWORD:
+      case WL_NO_SHIELD:
+      case WL_SCAN_COMPLETED:
+      case WL_CONNECT_FAILED:
+      case WL_CONNECTED:
+      default:
+        break;
+    }
+    SERIAL_VALUE("delay", millis() - status_.tsEvent)
+    status_.tsEvent = millis();
+    SERIAL_DELIM
   }
 
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
-  inline byte getFails() { return status_.fails; }
+  inline bool isInit() { return status_.flLoop; }
   inline int getRssi() { return WiFi.RSSI(); }
+  inline unsigned long getEventMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
   inline const char *getAddressMac() { return addressMac_; }
   inline const char *getHostname()
   {
     return isConnected() ? WiFi.getHostname() : wifi_.hostname;
   };
+  inline String getStatus()
+  {
+    switch (WiFi.status())
+    {
+      case WL_IDLE_STATUS:
+        return SERIAL_F("Changing between statuses");
+        break;
+
+      case WL_NO_SSID_AVAIL:
+        return SERIAL_F("No SSID available");
+        break;
+
+      case WL_SCAN_COMPLETED:
+        return SERIAL_F("Wifi networks scanning completed");
+        break;
+
+      case WL_CONNECTED:
+        return SERIAL_F("Connected successfully");
+        break;
+
+      case WL_CONNECT_FAILED:
+        return SERIAL_F("Connection failed");
+        break;
+
+      case WL_CONNECTION_LOST:
+        return SERIAL_F("Connection lost");
+        break;
+
+      case WL_WRONG_PASSWORD:
+        return SERIAL_F("Incorrect password");
+        break;
+
+      case WL_DISCONNECTED:
+        return SERIAL_F("Disconnected");
+        break;
+
+      case WL_NO_SHIELD:
+        return SERIAL_F("Wifi shield not present");
+        break;
+
+      default:
+        return SERIAL_F("Uknown");
+        break;
+    }
+    return statusText_;
+  }
 
 private:
   enum Timing : unsigned long
   {
-    PERIOD_FAIL = 500,
-    PERIOD_CONN = 1 * 60 * 1000,
-  };
-  enum Params : byte
-  {
-    PARAM_TRIES = 30,
+    PERIOD_TIMEOUT = 1 * 1000,
+    PERIOD_CONNECT = 15 * 1000,
   };
   struct Wifi
   {
@@ -184,25 +247,18 @@ private:
   } wifi_;
   struct Status
   {
-    byte fails;
-    unsigned long tsRetry;
-    bool flConnGain;
-    void reset()
-    {
-      tsRetry = 0;
-      flConnGain = false;
-    }
+    unsigned long tsEvent, timeWait;
+    bool flLoop;
     void init()
     {
-      reset();
-      fails = 0;
-      flConnGain = true;
+      timeWait = 0;
+      flLoop = true;
     }
   } status_;
   char addressIp_[16];
   char addressMac_[18];
-  Handlers handlers_;
-  ResultCodes connect();
+  char statusText_[30];
+  void connect();
   inline void setAddressIp()
   {
     strcpy(addressIp_, WiFi.localIP().toString().c_str());

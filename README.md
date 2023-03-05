@@ -1,7 +1,7 @@
 <a id="library"></a>
 
 # gbj\_appwifi
-This is an application library, which is used usually as a project library for particular PlatformIO project. It encapsulates the functionality of `connection to WiFi network`. The encapsulation provides following advantages:
+This is an application library, which is used as a project specific library for particular PlatformIO project. It encapsulates the functionality of `connection to WiFi network`. The encapsulation provides following advantages:
 
 * Functionality is hidden from the main sketch.
 * The library follows the principle `separation of concerns`.
@@ -16,6 +16,8 @@ This is an application library, which is used usually as a project library for p
 * The connection to wifi is checked at every loop of a main sketch.
 * If no connection to wifi is detected, the library starts the [connection process](#connection).
 * The library does not support multicast DNS on purpose, because it appeared as unreliable in praxis.
+* The project library relies on the system library for wifi management as for reconnection repetation, event handlers firing, etc.
+* The project library counts on handlers of type _WiFiEventHandler_ for events  _WiFiEventStationModeGotIP_ and _WiFiEventStationModeDisconnected_ at least, otherwise the wifi connection is managed fully just by the system library.
 
 
 <a id="internals"></a>
@@ -23,19 +25,8 @@ This is an application library, which is used usually as a project library for p
 ## Internal parameters
 Internal parameters are hard-coded in the library as enumerations and none of them have setters or getters associated.
 
-* **Period of waiting for next connection attempt** (`0.5 second`): It is a time period, during which the system is waiting for next attempt in blocking mode to connect to wifi.
-* **Number of failed connection attempts in the connection set** (`30`): It is a countdown for failed connections to wifi at blocking waiting. After reaching this number of connection fails, which represents a connection set, the library starts waiting for next set, but without blocking the system.
-* **Period of waiting for next connection set** (`1 minute`): It is a time period since recent failed connection attempt of recent connection set, during which the system is waiting in non-blocking mode for next connection set of attempts. The time interval between failed connection cycles inludes the duration of connection set, so it is `1m + 30 * 0.5s = 75s`.
-
-
-<a id="connection"></a>
-
-## Connection process
-The connection process is composed of 2 levels aiming to be robust. It gives the chance either the microcontroller itself or the WiFi <abbr title="Access Point">AP</abbr> to recover from failure and when to connect automatically. The connection process is controlled by [internal parameters](#internals).
-
-1. **Set of connection attemps**. It is a number of subsequent failed connection attemps, where the microcontroller tries to connect to <abbr title="Access Point">AP</abbr>. If an attempt fails, it starts waiting in blocking mode for next attempt. If predefined number of connection attemps fails, the library starts waiting for next connection set, i.e., start new connection cycle. The connection set with waiting periods among connection attempts allow the microcontroller to consolidate its internals to establish connection. If a connection attemp is successful, the library breaks entire connection process and goes to connection checking mode.
-
-2. **Cycle of connection sets**. It is a new set of connection attemps after waiting for a predefined [internal Period of waiting for next connection set](#internals). This time interal allows to consolidate the wifi connection, e.g., restart wifi router. It is up to an application and/or an external watchdog timer to restart the microcontroller after some failed connection cycles.
+* **Timeout of waiting for connection** (`1 second`): It is a time interval injected to the system wifi library method called in a loop, which is waiting for connection result.
+* **Period of waiting for next connection attempt** (`15 seconds`): It is a time period since recent failed connection attempt, during which the system is waiting in non-blocking mode for next connection attempt. This time period does not have effect at permanent failures like wrong password or wifi network name. In that cases the wifi management and timeouts are under control of the system library.
 
 
 <a id="dependency"></a>
@@ -69,88 +60,19 @@ Other constants, enumerations, result codes, and error codes are inherited from 
 
 <a id="interface"></a>
 
-## Custom data types
-* [Handler](#handler)
-* [Handlers](#handlers)
-
 ## Interface
 * [gbj_appwifi()](#gbj_appwifi)
 * [run()](#run)
-* [params()](#params)
+* [connectSuccess()](#connectSuccess)
+* [connectFail()](#connectFail)
+* [getStatus()](#getStatus)
+* [getEventMillis()](#getEventMillis)
 * [getHostname()](#getHostname)
 * [getAddressIp()](#getAddressIp)
 * [getAddressMac()](#getAddressMac)
 * [getRssi()](#getRssi)
-* [getFails()](#getFails)
 * [isConnected()](#isConnected)
-
-
-<a id="handler"></a>
-
-## Handler
-
-#### Description
-The template or the signature of a callback function, which is called at particular event in the processing. It can be utilized for instant communicating with other modules of the application (project).
-* A handler is just a bare function without any input parameters and returning nothing.
-* A handler can be declared just as `void` type.
-
-#### Syntax
-    typedef void Handler()
-
-#### Parameters
-None
-
-#### Returns
-None
-
-#### See also
-[Handlers](#handlers)
-
-[Back to interface](#interface)
-
-
-<a id="handlers"></a>
-
-## Handlers
-
-#### Description
-Structure of pointers to handlers each for particular event in processing.
-* Individual or all handlers do not need to be defined in the main sketch, just those that are useful.
-
-#### Syntax
-    struct Handlers
-    {
-      Handler *onConnectStart;
-      Handler *onConnectTry;
-      Handler *onConnectSuccess;
-      Handler *onConnectFail;
-      Handler *onDisconnect;
-      Handler *onRestart;
-    }
-
-#### Parameters
-* **onConnectStart**: Pointer to a callback function, which is called right before a new connection set.
-* **onConnectTry**: Pointer to a callback function, which is called after every failed connection attempt. It allows to observe the pending connection set.
-* **onConnectSuccess**: Pointer to a callback function, which is called right after successful connection to wifi.
-* **onConnectFail**: Pointer to a callback function, which is called right after failed connection set.
-* **onDisconnect**: Pointer to a callback function, which is called at lost of connection to wifi. It allows to create an alarm or a signal about it.
-
-#### Example
-```cpp
-void onWifiSuccess()
-{
-  ...
-}
-gbj_appwifi::Handlers handlersWifi = { .onConnectSuccess = onWifiSuccess };
-gbj_appwifi wifi = gbj_appwifi(..., handlersWifi);
-```
-
-#### See also
-[Handler](#handler)
-
-[gbj_appwifi](#gbj_appwifi)
-
-[Back to interface](#interface)
+* [isInit()](#isInit)
 
 
 <a id="gbj_appwifi"></a>
@@ -158,15 +80,14 @@ gbj_appwifi wifi = gbj_appwifi(..., handlersWifi);
 
 #### Description
 Overloaded constructor creates the class instance object and initiates internal resources.
-* It inputs credentials for a wifi network and potential handlers.
+* It inputs credentials for a wifi network.
 * It enables set network parameters for setting the static IP address.
 
 #### Syntax
-    gbj_appwifi(const char *ssid, const char *pass, const char *hostname, Handlers handlers)
+    gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
     gbj_appwifi(const char *ssid, const char *pass, const char *hostname,
       const IPAddress staticIp, const IPAddress gateway, const IPAddress subnet,
-      const IPAddress primaryDns, const IPAddress secondaryDns
-      Handlers handlers)
+      const IPAddress primaryDns, const IPAddress secondaryDns)
 
 #### Parameters
 * **ssid**: Pointer to the name of the wifi network to connect to.
@@ -182,11 +103,6 @@ Overloaded constructor creates the class instance object and initiates internal 
 * **hostname**: Pointer to the hostname for a device on the network.
   * *Valid values*: constant pointer to string
   * *Default value*: none
-
-
-* **handlers**: Pointer to a structure of callback functions. This structure as well as handlers should be defined in the main sketch.
-  * *Data type*: Handlers
-  * *Default value*: empty structure
 
 
 * **staticIp**: IP address to be set as static (fixed) one for the microcontroller. It consists from 4 octets in case of IPv4 addressing and is usually defined as compiler macro in a main sketch.
@@ -219,7 +135,7 @@ Object performing connection and reconnection to the wifi network.
 #### Example
 For case with dynamic IP address assigned by a DHCP server:
 ```cpp
-gbj_appwifi wifi = gbj_appwifi(WIFI_SSID, WIFI_PASS, WIFI_HOSTNAME, handlersWifi);
+gbj_appwifi wifi = gbj_appwifi(WIFI_SSID, WIFI_PASS, WIFI_HOSTNAME);
 ```
 
 For case with static IP address assigned in the firmware and defined usually by compiler macros:
@@ -231,8 +147,7 @@ gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
                                IPAddress(IP_GATEWAY),
                                IPAddress(IP_SUBNET),
                                IPAddress(IP_DNS_PRIMARY),
-                               IPAddress(IP_DNS_SECONDARY),
-                               handlersWifi);
+                               IPAddress(IP_DNS_SECONDARY));
 ```
 
 For case with static IP address assigned in the firmware and defined directly in a main sketch without DNS servers and handlers:
@@ -245,9 +160,6 @@ gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
                                IPAddress(255, 255, 255, 0));
 ```
 
-#### See also
-[Handlers](#handlers)
-
 [Back to interface](#interface)
 
 
@@ -256,7 +168,7 @@ gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
 ## run()
 
 #### Description
-The execution method should be called frequently, usually in the loop function of a sketch.
+The execution method should be called frequently, usually in the loop function of a main sketch.
 * The method connects to the wifi network at the very first calling it and reconnects to it if neccesary.
 * If the serial connection is active, the library outputs flow of the connection and at success lists basic parameters of the connection to wifi.
 
@@ -272,22 +184,140 @@ None
 [Back to interface](#interface)
 
 
-<a id="params"></a>
+<a id="connectSuccess"></a>
 
-## params()
+## connectSuccess()
 
 #### Description
-The method calculates IP and MAC addresses and fills corresponding buffers.
-* In debug mode it displays relevant connection parametes for serial monitoring.
+The method processes the successful connection to wifi network.
+* The method should be called in handler for the event _WiFiEventStationModeGotIP_.
+* If the serial connection is active, the method outputs basic parameters of the connection to wifi.
 
 #### Syntax
-    void params()
+    void connectSuccess()
 
 #### Parameters
 None
 
 #### Returns
 None
+
+#### Example
+For handler as a lambda function.
+```cpp
+WiFiEventHandler wifiConnectHandler;
+void setup()
+{
+  wifiConnectHandler = WiFi.onStationModeGotIP(
+    [](const WiFiEventStationModeGotIP &event)
+    {
+      wifi.connectSuccess();
+    });
+}
+```
+For handler as a separate function.
+```cpp
+WiFiEventHandler wifiConnectHandler;
+void onWifiConnect(const WiFiEventStationModeGotIP &event)
+{
+  wifi.connectSuccess();
+}
+void setup()
+{
+  wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
+}
+```
+
+#### See also
+[connectFail()](#connectFail)
+
+[Back to interface](#interface)
+
+
+<a id="connectFail"></a>
+
+## connectFail()
+
+#### Description
+The method processes the failed connection to wifi network.
+* The method should be called in handler for the event _WiFiEventStationModeDisconnected_.
+* If the serial connection is active, the method outputs the reason status of failed connection to wifi.
+
+#### Syntax
+    void connectFail()
+
+#### Parameters
+None
+
+#### Returns
+None
+
+#### Example
+For handler as a lambda function.
+```cpp
+WiFiEventHandler wifiDisconnectHandler;
+void setup()
+{
+  wifiDisconnectHandler = WiFi.onStationModeDisconnected(
+    [](const WiFiEventStationModeDisconnected &event)
+    {
+      wifi.connectFail();
+    });
+}
+```
+For handler as a separate function.
+```cpp
+WiFiEventHandler wifiDisconnectHandler;
+void onWifiDisconnect(const WiFiEventStationModeDisconnected &event)
+{
+  wifi.connectFail();
+}
+void setup()
+{
+  wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
+}
+```
+
+#### See also
+[connectSuccess()](#connectSuccess)
+
+[Back to interface](#interface)
+
+
+<a id="getEventMillis"></a>
+
+## getEventMillis()
+
+#### Description
+The method returns the timestamp of the recent event, either successfull connection, sudden disconnection, or failed connection attempt to wifi.
+
+#### Syntax
+    unsigned long getEventMillis()
+
+#### Parameters
+None
+
+#### Returns
+A timestamp of the recent wifi event.
+
+[Back to interface](#interface)
+
+
+<a id="getStatus"></a>
+
+## getStatus()
+
+#### Description
+The method returns recent status of the connection to wifi in textual form.
+
+#### Syntax
+    String getStatus()
+
+#### Parameters
+None
+
+#### Returns
+A textual wifi status desription.
 
 [Back to interface](#interface)
 
@@ -386,26 +416,6 @@ Current wifi signal strength of the microcontroller in _dBm_.
 [Back to interface](#interface)
 
 
-<a id="getFails"></a>
-
-## getFails()
-
-#### Description
-The method returns the number of failed connection sets during a failed connection cycle until the successful connection.
-* It might be useful for some statistics in appropriate handler(s).
-
-#### Syntax
-    byte getFails()
-
-#### Parameters
-None
-
-#### Returns
-Number of failed connection cycles in pending failed connection process.
-
-[Back to interface](#interface)
-
-
 <a id="isConnected"></a>
 
 ## isConnected()
@@ -421,5 +431,25 @@ None
 
 #### Returns
 Flag about connecting status to wifi.
+
+[Back to interface](#interface)
+
+
+<a id="isInit"></a>
+
+## isInit()
+
+#### Description
+The method returns a flag whether waiting loop for the wifi connection has been initiated.
+* The method allows to distinguish between starting the connection and consecutive connection failures, e.g., for signalling.
+
+#### Syntax
+    bool isInit()
+
+#### Parameters
+None
+
+#### Returns
+Flag about starting connection to wifi.
 
 [Back to interface](#interface)
