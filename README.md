@@ -14,10 +14,13 @@ This is an application library, which is used as a project specific library for 
 ## Fundamental functionality
 * The library enables to set a static (fixed) IP address of the microcontroller.
 * The connection to wifi is checked at every loop of a main sketch.
-* If no connection to wifi is detected, the library starts the [connection process](#connection).
 * The library does not support multicast DNS on purpose, because it appeared as unreliable in praxis.
+* If no connection to wifi is detected or has been lost, the library starts a new attempt to connect and tries to recover wifi connection.
+* The library is designed for blocking the MCU at wifi connection establishment as little as possible, so that it utilizes a main sketch loop for it.
 * The project library relies on the system library for wifi management as for reconnection repetation, event handlers firing, etc.
-* The project library counts on handlers of type _WiFiEventHandler_ for events  _WiFiEventStationModeGotIP_ and _WiFiEventStationModeDisconnected_ at least, otherwise the wifi connection is managed fully just by the system library.
+* The project library counts on handlers of type _WiFiEventHandler_ for events  _WiFiEventStationModeGotIP_ and _WiFiEventStationModeDisconnected_ at least.
+* If _WiFiEventStationModeGotIP_ handler is not implemented in the main sketch or from some reasons it does not fire after successful connection, the library simulates its activation.
+* If _WiFiEventStationModeDisconnected_ handler is not implemented in the main sketch or from some reasons it does not fire during repeating waiting for a connection result, the library simulates its activation by a safety counter after safety number of failed connection attempts.
 
 
 <a id="internals"></a>
@@ -25,8 +28,9 @@ This is an application library, which is used as a project specific library for 
 ## Internal parameters
 Internal parameters are hard-coded in the library as enumerations and none of them have setters or getters associated.
 
-* **Timeout of waiting for connection** (`1 second`): It is a time interval injected to the system wifi library method called in a loop, which is waiting for connection result.
+* **Timeout of waiting for connection result** (`1 second`): It is a time interval injected to the system wifi library method called in a loop, which is waiting for connection result.
 * **Period of waiting for next connection attempt** (`15 seconds`): It is a time period since recent failed connection attempt, during which the system is waiting in non-blocking mode for next connection attempt. This time period does not have effect at permanent failures like wrong password or wifi network name. In that cases the wifi management and timeouts are under control of the system library.
+* **Safety number of connection result waits** ('30'): Maximal number of waitings for connection result used by the safety counter for simulating the _WiFiEventStationModeDisconnected_ handler.
 
 
 <a id="dependency"></a>

@@ -63,9 +63,7 @@ public:
 
     RETURN: object
   */
-  inline gbj_appwifi(const char *ssid,
-                     const char *pass,
-                     const char *hostname)
+  inline gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
   {
     wifi_.ssid = ssid;
     wifi_.pass = pass;
@@ -115,9 +113,7 @@ public:
   */
   void connectSuccess()
   {
-    SERIAL_LINE
     SERIAL_VALUE("connectSuccess()", getStatus())
-    status_.tsEvent = millis();
     setAddressIp();
     setAddressMac();
     SERIAL_VALUE("IP", WiFi.localIP())
@@ -128,6 +124,7 @@ public:
     WiFi.setAutoReconnect(false);
     WiFi.persistent(false);
     status_.init();
+    status_.flHandlerSuccess = true;
     SERIAL_DELIM
   }
 
@@ -144,35 +141,19 @@ public:
   */
   void connectFail()
   {
-    SERIAL_LINE
     SERIAL_VALUE("connectFail()", getStatus())
-    status_.flLoop = false;
-    switch (WiFi.status())
-    {
-      case WL_DISCONNECTED:
-        status_.timeWait = Timing::PERIOD_CONNECT;
-        break;
-      case WL_IDLE_STATUS:
-      case WL_CONNECTION_LOST:
-        status_.init();
-        break;
-      case WL_NO_SSID_AVAIL:
-      case WL_WRONG_PASSWORD:
-      case WL_NO_SHIELD:
-      case WL_SCAN_COMPLETED:
-      case WL_CONNECT_FAILED:
-      case WL_CONNECTED:
-      default:
-        break;
-    }
     SERIAL_VALUE("delay", millis() - status_.tsEvent)
-    status_.tsEvent = millis();
+    status_.flBegin = true;
+    status_.flHandlerSuccess = false;
+    status_.timeWait = Timing::PERIOD_CONNECT;
+    status_.waits = 0;
+    WiFi.mode(WIFI_OFF);
     SERIAL_DELIM
   }
 
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
-  inline bool isInit() { return status_.flLoop; }
+  inline bool isInit() { return status_.flBegin; }
   inline int getRssi() { return WiFi.RSSI(); }
   inline unsigned long getEventMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
@@ -234,6 +215,10 @@ private:
     PERIOD_TIMEOUT = 1 * 1000,
     PERIOD_CONNECT = 15 * 1000,
   };
+  enum Params : byte
+  {
+    PARAM_SAFETY_WAITS = 30,
+  };
   struct Wifi
   {
     const char *ssid;
@@ -248,11 +233,14 @@ private:
   struct Status
   {
     unsigned long tsEvent, timeWait;
-    bool flLoop;
+    bool flBegin, flHandlerSuccess;
+    byte waits;
     void init()
     {
+      flBegin = true;
+      flHandlerSuccess = false;
       timeWait = 0;
-      flLoop = true;
+      waits = 0;
     }
   } status_;
   char addressIp_[16];
