@@ -76,7 +76,6 @@ Other constants, enumerations, result codes, and error codes are inherited from 
 * [getAddressMac()](#getAddressMac)
 * [getRssi()](#getRssi)
 * [isConnected()](#isConnected)
-* [isInit()](#isInit)
 
 
 <a id="gbj_appwifi"></a>
@@ -435,25 +434,5 @@ None
 
 #### Returns
 Flag about connecting status to wifi.
-
-[Back to interface](#interface)
-
-
-<a id="isInit"></a>
-
-## isInit()
-
-#### Description
-The method returns a flag whether waiting loop for the wifi connection has been initiated.
-* The method allows to distinguish between starting the connection and consecutive connection failures, e.g., for signalling.
-
-#### Syntax
-    bool isInit()
-
-#### Parameters
-None
-
-#### Returns
-Flag about starting connection to wifi.
 
 [Back to interface](#interface)

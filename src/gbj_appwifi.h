@@ -153,7 +153,6 @@ public:
 
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
-  inline bool isInit() { return status_.flBegin; }
   inline int getRssi() { return WiFi.RSSI(); }
   inline unsigned long getEventMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
