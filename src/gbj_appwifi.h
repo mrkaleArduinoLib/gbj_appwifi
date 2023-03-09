@@ -34,12 +34,9 @@
 
 #undef SERIAL_PREFIX
 #define SERIAL_PREFIX "gbj_appwifi"
-
 class gbj_appwifi : public gbj_appcore
 {
 public:
-  const char *VERSION = "GBJ_APPWIFI 1.10.0";
-
   /*
     Constructor
 
@@ -145,7 +142,7 @@ public:
     SERIAL_VALUE("delay", millis() - status_.tsEvent)
     status_.flBegin = true;
     status_.flHandlerSuccess = false;
-    status_.timeWait = Timing::PERIOD_CONNECT;
+    status_.timeWait = status_.timePeriod;
     status_.waits = 0;
     WiFi.mode(WIFI_OFF);
     SERIAL_DELIM
@@ -154,7 +151,8 @@ public:
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
   inline int getRssi() { return WiFi.RSSI(); }
-  inline unsigned long getEventMillis() { return status_.tsEvent; }
+  inline unsigned long getPeriod() { return status_.timePeriod; }
+  inline unsigned long getBeginMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
   inline const char *getAddressMac() { return addressMac_; }
   inline const char *getHostname()
@@ -208,11 +206,29 @@ public:
     return statusText_;
   }
 
+  // Setters
+
+  // Set reconnect period inputed as unsigned long in milliseconds
+  inline void setPeriod(unsigned long period)
+  {
+    status_.timePeriod = period ? period : Timing::PERIOD_CONNECT_DFT;
+    status_.timePeriod = constrain(status_.timePeriod,
+                                   Timing::PERIOD_CONNECT_MIN,
+                                   Timing::PERIOD_CONNECT_MAX);
+  }
+  // Set timer period inputed as String in seconds
+  inline void setPeriod(String period)
+  {
+    setPeriod(1000 * (unsigned long)period.toInt());
+  }
+
 private:
   enum Timing : unsigned long
   {
     PERIOD_TIMEOUT = 1 * 1000,
-    PERIOD_CONNECT = 15 * 1000,
+    PERIOD_CONNECT_DFT = 15 * 1000,
+    PERIOD_CONNECT_MIN = 5 * 1000,
+    PERIOD_CONNECT_MAX = 60 * 1000,
   };
   enum Params : byte
   {
@@ -232,6 +248,7 @@ private:
   struct Status
   {
     unsigned long tsEvent, timeWait;
+    unsigned long timePeriod = Timing::PERIOD_CONNECT_DFT;
     bool flBegin, flHandlerSuccess;
     byte waits;
     void init()

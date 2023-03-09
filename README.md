@@ -29,7 +29,9 @@ This is an application library, which is used as a project specific library for 
 Internal parameters are hard-coded in the library as enumerations and none of them have setters or getters associated.
 
 * **Timeout of waiting for connection result** (`1 second`): It is a time interval injected to the system wifi library method called in a loop, which is waiting for connection result.
-* **Period of waiting for next connection attempt** (`15 seconds`): It is a time period since recent failed connection attempt, during which the system is waiting in non-blocking mode for next connection attempt. This time period does not have effect at permanent failures like wrong password or wifi network name. In that cases the wifi management and timeouts are under control of the system library.
+* **Default waiting period for next connection attempt** (`15 seconds`): It is a time period since recent failed connection attempt, during which the system is waiting in non-blocking mode for next connection attempt. This time period does not have effect at permanent failures like wrong password or wifi network name. In that cases the wifi management and timeouts are under control of the system library.
+* **Minimal waiting period for next connection attempt** (`5 seconds`): Minimal reasonable value, to which the input value is limited.
+* **Maximal waiting period for next connection attempt** (`60 seconds`): Maximal reasonable value, to which the input value is limited.
 * **Safety number of connection result waits** ('30'): Maximal number of waitings for connection result used by the safety counter for simulating the _WiFiEventStationModeDisconnected_ handler.
 
 
@@ -75,6 +77,9 @@ Other constants, enumerations, result codes, and error codes are inherited from 
 * [getAddressIp()](#getAddressIp)
 * [getAddressMac()](#getAddressMac)
 * [getRssi()](#getRssi)
+* [getBeginMillis()](#getBeginMillis)
+* [getPeriod()](#getPeriod)
+* [setPeriod()](#setPeriod)
 * [isConnected()](#isConnected)
 
 
@@ -415,6 +420,82 @@ None
 
 #### Returns
 Current wifi signal strength of the microcontroller in _dBm_.
+
+[Back to interface](#interface)
+
+
+<a id="getBeginMillis"></a>
+
+## getBeginMillis()
+
+#### Description
+The method returns timestamp of the recent begining of connection to a wifi network in milliseconds.
+
+#### Syntax
+    unsigned long getBeginMillis()
+
+#### Parameters
+None
+
+#### Returns
+Recent timestamp of the wifi connection in milliseconds.
+
+[Back to interface](#interface)
+
+
+<a id="getPeriod"></a>
+
+## getPeriod()
+
+#### Description
+The method returns current waiting period.
+
+#### Syntax
+    unsigned long getPeriod()
+
+#### Parameters
+None
+
+#### Returns
+Current waiting period in milliseconds.
+
+#### See also
+[setPeriod()](#setPeriod)
+
+[Back to interface](#interface)
+
+
+<a id="setPeriod"></a>
+
+## setPeriod()
+
+#### Description
+The overloaded method sets a new waiting period for a next reconnection attempt to a wifi network after failed previous one. The period can set in milliseconds or seconds.
+* The method with numerical input argument is aimed for input in milliseconds.
+* The method with textual input argument is aimed for input in seconds. It is useful with conjunction with a project data hub, which data has always string data type.
+* If input period is zero or not numerical (leading to zero), the library sets the [internal default period](#internals).
+* The input period is sanitized and constraint for [minimal and maximal value](#internals).
+
+
+#### Syntax
+    void setPeriod(unsigned long period)
+    void setPeriod(String periodSec)
+
+#### Parameters
+* **period**: Duration of the waiting period in milliseconds.
+  * *Valid values*: 0 ~ 2^32 - 1
+  * *Default value*: none
+
+
+* **periodSec**: Duration of the waiting period in seconds declared as string.
+  * *Valid values*: String
+  * *Default value*: none
+
+#### Returns
+None
+
+#### See also
+[getPeriod()](#getPeriod)
 
 [Back to interface](#interface)
 
