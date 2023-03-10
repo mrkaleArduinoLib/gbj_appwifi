@@ -158,7 +158,7 @@ gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
                                IPAddress(IP_DNS_SECONDARY));
 ```
 
-For case with static IP address assigned in the firmware and defined directly in a main sketch without DNS servers and handlers:
+For case with static IP address assigned in the firmware and defined directly in a main sketch without DNS servers:
 ```cpp
 gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
                                WIFI_PASS,
@@ -198,7 +198,7 @@ None
 
 #### Description
 The method processes the successful connection to wifi network.
-* The method should be called in handler for the event _WiFiEventStationModeGotIP_.
+* The method should be called in success handler for the event _WiFiEventStationModeGotIP_.
 * If the serial connection is active, the method outputs basic parameters of the connection to wifi.
 
 #### Syntax
@@ -248,7 +248,7 @@ void setup()
 
 #### Description
 The method processes the failed connection to wifi network.
-* The method should be called in handler for the event _WiFiEventStationModeDisconnected_.
+* The method should be called in failure handler for the event _WiFiEventStationModeDisconnected_.
 * If the serial connection is active, the method outputs the reason status of failed connection to wifi.
 
 #### Syntax
@@ -297,7 +297,10 @@ void setup()
 ## getEventMillis()
 
 #### Description
-The method returns the timestamp of the recent event, either successfull connection, sudden disconnection, or failed connection attempt to wifi.
+The method returns the timestamp of the recent event, which can be:
+* beginning the connection
+* firing success handler at connecting to wifi
+* firing failure handler at disconnection or failed connection attempt.
 
 #### Syntax
     unsigned long getEventMillis()
@@ -473,7 +476,7 @@ Current waiting period in milliseconds.
 The overloaded method sets a new waiting period for a next reconnection attempt to a wifi network after failed previous one. The period can set in milliseconds or seconds.
 * The method with numerical input argument is aimed for input in milliseconds.
 * The method with textual input argument is aimed for input in seconds. It is useful with conjunction with a project data hub, which data has always string data type.
-* If input period is zero or not numerical (leading to zero), the library sets the [internal default period](#internals).
+* If input period is zero or not numerical (leading to zero), the library sets the [internal default period](#internals). The setter with numerical argument has default zero value, so that calling it without argument the default waiting period is set.
 * The input period is sanitized and constraint for [minimal and maximal value](#internals).
 
 
@@ -484,7 +487,7 @@ The overloaded method sets a new waiting period for a next reconnection attempt 
 #### Parameters
 * **period**: Duration of the waiting period in milliseconds.
   * *Valid values*: 0 ~ 2^32 - 1
-  * *Default value*: none
+  * *Default value*: 0
 
 
 * **periodSec**: Duration of the waiting period in seconds declared as string.

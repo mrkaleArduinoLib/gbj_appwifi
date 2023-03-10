@@ -122,6 +122,7 @@ public:
     WiFi.persistent(false);
     status_.init();
     status_.flHandlerSuccess = true;
+    status_.tsEvent = millis();
     SERIAL_DELIM
   }
 
@@ -145,6 +146,7 @@ public:
     status_.timeWait = status_.timePeriod;
     status_.waits = 0;
     WiFi.mode(WIFI_OFF);
+    status_.tsEvent = millis();
     SERIAL_DELIM
   }
 
@@ -152,7 +154,7 @@ public:
   inline bool isConnected() { return WiFi.isConnected(); }
   inline int getRssi() { return WiFi.RSSI(); }
   inline unsigned long getPeriod() { return status_.timePeriod; }
-  inline unsigned long getBeginMillis() { return status_.tsEvent; }
+  inline unsigned long getEventMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
   inline const char *getAddressMac() { return addressMac_; }
   inline const char *getHostname()
@@ -209,7 +211,7 @@ public:
   // Setters
 
   // Set reconnect period inputed as unsigned long in milliseconds
-  inline void setPeriod(unsigned long period)
+  inline void setPeriod(unsigned long period = 0)
   {
     status_.timePeriod = period ? period : Timing::PERIOD_CONNECT_DFT;
     status_.timePeriod = constrain(status_.timePeriod,
