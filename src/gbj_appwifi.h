@@ -211,12 +211,10 @@ public:
   // Setters
 
   // Set reconnect period inputed as unsigned long in milliseconds
-  inline void setPeriod(unsigned long period = 0)
+  inline void setPeriod(unsigned long period = Timing::PERIOD_CONNECT_DFT)
   {
-    status_.timePeriod = period ? period : Timing::PERIOD_CONNECT_DFT;
-    status_.timePeriod = constrain(status_.timePeriod,
-                                   Timing::PERIOD_CONNECT_MIN,
-                                   Timing::PERIOD_CONNECT_MAX);
+    status_.timePeriod =
+      constrain(period, Timing::PERIOD_CONNECT_MIN, Timing::PERIOD_CONNECT_MAX);
   }
   // Set timer period inputed as String in seconds
   inline void setPeriod(String period)
@@ -229,7 +227,7 @@ private:
   {
     PERIOD_TIMEOUT = 1 * 1000,
     PERIOD_CONNECT_DFT = 15 * 1000,
-    PERIOD_CONNECT_MIN = 5 * 1000,
+    PERIOD_CONNECT_MIN = 0 * 1000,
     PERIOD_CONNECT_MAX = 60 * 1000,
   };
   enum Params : byte

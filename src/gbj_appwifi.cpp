@@ -47,7 +47,8 @@ void gbj_appwifi::connect()
       SERIAL_VALUE("Connecting to", wifi_.ssid)
       WiFi.begin(wifi_.ssid, wifi_.pass);
     }
-    SERIAL_TITLE("Waiting")
+    status_.waits++;
+    SERIAL_VALUE("Waiting", status_.waits)
     WiFi.waitForConnectResult(Timing::PERIOD_TIMEOUT);
     if (WiFi.status() == WL_CONNECTED)
     {
@@ -64,7 +65,7 @@ void gbj_appwifi::connect()
      If there is no failure handler implemented in the main sketch, the safety
      counter simulates that handler.
     */
-    else if (++status_.waits > Params::PARAM_SAFETY_WAITS)
+    else if (status_.waits > Params::PARAM_SAFETY_WAITS)
     {
       connectFail();
     }
