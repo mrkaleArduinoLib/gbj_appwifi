@@ -2,12 +2,10 @@
 
 void gbj_appwifi::connect()
 {
-  // Already connected
   if (WiFi.status() == WL_CONNECTED)
   {
     return;
   }
-
   /*
   Right after boot or success handler the wating time is zero, which enables
   waiting for connect result in the main sketch loop as frequently as determined

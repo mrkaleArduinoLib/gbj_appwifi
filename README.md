@@ -21,6 +21,7 @@ This is an application library, which is used as a project specific library for 
 * The project library counts on handlers of type _WiFiEventHandler_ for events  _WiFiEventStationModeGotIP_ and _WiFiEventStationModeDisconnected_ at least.
 * If _WiFiEventStationModeGotIP_ handler is not implemented in the main sketch or from some reasons it does not fire after successful connection, the library simulates its activation.
 * If _WiFiEventStationModeDisconnected_ handler is not implemented in the main sketch or from some reasons it does not fire during repeating waiting for a connection result, the library simulates its activation by a safety counter after safety number of failed connection attempts.
+* The library provides statistical smoothing of <abbr title='Received Signal Strength Indicator'>RSSI</abbr> by `median` from `5` consecutive values in <abbr title='decibel milliwatt'>dBm</abbr>.
 
 
 <a id="internals"></a>
@@ -32,7 +33,8 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * **Default waiting period for next connection attempt** (`15 seconds`): It is a time period since recent failed connection attempt, during which the system is waiting in non-blocking mode for next connection attempt. This time period does not have effect at permanent failures like wrong password or wifi network name. In that cases the wifi management and timeouts are under control of the system library.
 * **Minimal waiting period for next connection attempt** (`0 seconds`): Minimal value, to which the input value is limited. The zero period means immediate reconnection after connection lost.
 * **Maximal waiting period for next connection attempt** (`60 seconds`): Maximal reasonable value, to which the input value is limited.
-* **Safety number of connection result waits** ('30'): Maximal number of waitings for connection result used by the safety counter for simulating the _WiFiEventStationModeDisconnected_ handler.
+* **Safety number of connection result waits** (`30`): Maximal number of waitings for connection result used by the safety counter for simulating the _WiFiEventStationModeDisconnected_ handler.
+* **RSSI samples for statistical smoothing** (`5`): Number of consecutive values for calculating median.
 
 
 <a id="dependency"></a>
@@ -56,14 +58,6 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 > Library is not intended to be utilized on platforms without WiFi capabality.
 
 
-<a id="constants"></a>
-
-## Constants
-* **VERSION**: Name and semantic version of the library.
-
-Other constants, enumerations, result codes, and error codes are inherited from the parent library.
-
-
 <a id="interface"></a>
 
 ## Interface
@@ -77,7 +71,9 @@ Other constants, enumerations, result codes, and error codes are inherited from 
 * [getAddressIp()](#getAddressIp)
 * [getAddressMac()](#getAddressMac)
 * [getRssi()](#getRssi)
-* [getBeginMillis()](#getBeginMillis)
+* [getRssiSmooth()](#getRssiSmooth)
+* [setRssiSmooth()](#setRssiSmooth)
+* [getEventMillis()](#getEventMillis)
 * [getPeriod()](#getPeriod)
 * [setPeriod()](#setPeriod)
 * [isConnected()](#isConnected)
@@ -298,8 +294,7 @@ void setup()
 
 #### Description
 The method returns the timestamp of the recent event, which can be:
-* beginning the connection
-* firing success handler at connecting to wifi
+* firing success handler at connecting to wifi,
 * firing failure handler at disconnection or failed connection attempt.
 
 #### Syntax
@@ -413,7 +408,7 @@ A pointer to the constant string with MAC address of the microcontroller.
 ## getRssi()
 
 #### Description
-The method returns the current WiFi _Received Signal Strength Indicator_ (RSSI) of the microcontroller connected to the wifi network. Values are negative and in _decibel milliwats_ (dBm).
+The method returns the current RSSI value of the microcontroller connected to the wifi network. Values are negative and in _dBm_.
 
 #### Syntax
     int getRssi()
@@ -424,24 +419,77 @@ None
 #### Returns
 Current wifi signal strength of the microcontroller in _dBm_.
 
+#### See also
+[getRssiSmooth()](#getRssiSmooth)
+
 [Back to interface](#interface)
 
 
-<a id="getBeginMillis"></a>
+<a id="getRssiSmooth"></a>
 
-## getBeginMillis()
+## getRssiSmooth()
 
 #### Description
-The method returns timestamp of the recent begining of connection to a wifi network in milliseconds.
+The method returns the recent statistically smoothed RSSI value for previous set of provided values by the setter.
+* If the microcontroller is not connected to wifi, the method returns current RSSI value.
+* Because corresponding setter returns the smoothed value as well, this getter is useful only for repeating fetching recent smoothed value without adding new value to the internal smoothing function.
 
 #### Syntax
-    unsigned long getBeginMillis()
+    int getRssiSmooth()
 
 #### Parameters
 None
 
 #### Returns
-Recent timestamp of the wifi connection in milliseconds.
+Smoothed wifi signal strength of the microcontroller in _dBm_.
+
+#### See also
+[getRssi()](#getRssi)
+
+[setRssiSmooth()](#setRssiSmooth)
+
+[Back to interface](#interface)
+
+
+<a id="setRssiSmooth"></a>
+
+## setRssiSmooth()
+
+#### Description
+The method puts current RSSI value to the internal smoothing function for statistically smoothing RSSI values.
+* At the same time the setter returns the currently calculated smoothed value by the getter [getRssiSmooth()](#getRssiSmooth), so that only this setter is needed for smoothing RSSI.
+* The setter should be called at reasonable time intervals, usually in publishing or eventing periods.
+
+#### Syntax
+    int setRssiSmooth()
+
+#### Parameters
+None
+
+#### Returns
+Smoothed wifi signal strength of the microcontroller in _dBm_.
+
+#### See also
+[getRssiSmooth()](#getRssiSmooth)
+
+[Back to interface](#interface)
+
+
+<a id="getEventMillis"></a>
+
+## getEventMillis()
+
+#### Description
+The method returns timestamp of the recent connection event, successful or failed connection attempt to a wifi network in milliseconds.
+
+#### Syntax
+    unsigned long getEventMillis()
+
+#### Parameters
+None
+
+#### Returns
+Recent timestamp of the wifi connection event in milliseconds.
 
 [Back to interface](#interface)
 

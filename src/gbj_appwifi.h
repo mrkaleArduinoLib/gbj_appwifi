@@ -30,6 +30,8 @@
   #error !!! Only platforms with WiFi are suppored !!!
 #endif
 #include "gbj_appcore.h"
+#include "gbj_appsmooth.h"
+#include "gbj_running.h"
 #include "gbj_serial_debug.h"
 
 #undef SERIAL_PREFIX
@@ -66,6 +68,7 @@ public:
     wifi_.pass = pass;
     wifi_.hostname = hostname;
     status_.init();
+    smooth_ = new gbj_appsmooth<gbj_running, int>();
   }
   inline gbj_appwifi(const char *ssid,
                      const char *pass,
@@ -122,6 +125,8 @@ public:
     WiFi.persistent(false);
     status_.init();
     status_.flHandlerSuccess = true;
+    smooth_->begin();
+    smooth_->getMeasurePtr()->setMedian();
     status_.tsEvent = millis();
     SERIAL_DELIM
   }
@@ -153,6 +158,10 @@ public:
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
   inline int getRssi() { return WiFi.RSSI(); }
+  inline int getRssiSmooth()
+  {
+    return isConnected() ? smooth_->getValue() : getRssi();
+  }
   inline unsigned long getPeriod() { return status_.timePeriod; }
   inline unsigned long getEventMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
@@ -209,6 +218,14 @@ public:
   }
 
   // Setters
+  inline int setRssiSmooth()
+  {
+    if (isConnected())
+    {
+      smooth_->setValue(getRssi());
+    }
+    return getRssiSmooth();
+  }
 
   // Set reconnect period inputed as unsigned long in milliseconds
   inline void setPeriod(unsigned long period = Timing::PERIOD_CONNECT_DFT)
@@ -262,6 +279,7 @@ private:
   char addressIp_[16];
   char addressMac_[18];
   char statusText_[30];
+  gbj_appsmooth<gbj_running, int> *smooth_;
   void connect();
   inline void setAddressIp()
   {
