@@ -10,13 +10,15 @@ This is an application library, which is used as a project specific library for 
 * It specifies (inherits from) the parent application library `gbj_appcore`.
 * It utilizes funcionality and error handling from the parent class.
 
+> The library supports only microcontrollers with wifi capability, so that it is not suitable for Arduinos.
+
 
 ## Fundamental functionality
 * The library enables to set a static (fixed) IP address of the microcontroller.
 * The connection to wifi is checked at every loop of a main sketch.
 * The library does not support multicast DNS on purpose, because it appeared as unreliable in praxis.
 * If no connection to wifi is detected or has been lost, the library starts a new attempt to connect and tries to recover wifi connection.
-* The library is designed for blocking the MCU at wifi connection establishment as little as possible, so that it utilizes a main sketch loop for it.
+* The library is designed for blocking the <abbr title='Micro Controller Unit'>MCU</abbr> at wifi connection establishment as little as possible, so that it utilizes a main sketch loop for it.
 * The project library relies on the system library for wifi management as for reconnection repetation, event handlers firing, etc.
 * The project library counts on handlers of type _WiFiEventHandler_ for events  _WiFiEventStationModeGotIP_ and _WiFiEventStationModeDisconnected_ at least.
 * If _WiFiEventStationModeGotIP_ handler is not implemented in the main sketch or from some reasons it does not fire after successful connection, the library simulates its activation.
@@ -34,15 +36,16 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * **Minimal waiting period for next connection attempt** (`0 seconds`): Minimal value, to which the input value is limited. The zero period means immediate reconnection after connection lost.
 * **Maximal waiting period for next connection attempt** (`60 seconds`): Maximal reasonable value, to which the input value is limited.
 * **Safety number of connection result waits** (`30`): Maximal number of waitings for connection result used by the safety counter for simulating the _WiFiEventStationModeDisconnected_ handler.
-* **RSSI samples for statistical smoothing** (`5`): Number of consecutive values for calculating median.
 
 
 <a id="dependency"></a>
 
 ## Dependency
 
-* **gbj\_appcore**: Parent library loaded from the file `gbj_appcore.h`.
+* **gbj\_appcore**: Parent application library loaded from the file `gbj_appcore.h`.
 * **gbj\_serial\_debug**: Auxilliary library for debug serial output loaded from the file `gbj_serial_debug.h`. It enables to exclude serial outputs from final compilation.
+* **gbj\_appsmooth**: Application library for managing statistical smoothing, here RSSI values.
+* **gbj\_running**: General library for executing statistical smoothing, here median.
 
 #### Espressif ESP8266 platform
 * **Arduino.h**: Main include file for the Arduino platform.

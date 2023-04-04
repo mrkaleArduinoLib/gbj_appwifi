@@ -27,7 +27,7 @@
 #elif defined(PARTICLE)
   #include <Particle.h>
 #else
-  #error !!! Only platforms with WiFi are suppored !!!
+  #error !!! Only platforms with WiFi are supported !!!
 #endif
 #include "gbj_appcore.h"
 #include "gbj_appsmooth.h"
