@@ -4,7 +4,6 @@
 
   DESCRIPTION:
   Application library for processing connection to an access point over WiFi.
-  - The library activates multicast DNS with the provided wifi hostname.
 
   LICENSE:
   This program is free software; you can redistribute it and/or modify
@@ -20,9 +19,11 @@
 
 #if defined(ESP8266)
   #include <Arduino.h>
+  #include <ESP8266Ping.h>
   #include <ESP8266WiFi.h>
 #elif defined(ESP32)
   #include <Arduino.h>
+  #include <ESP32Ping.h>
   #include <WiFi.h>
 #elif defined(PARTICLE)
   #include <Particle.h>
@@ -153,6 +154,29 @@ public:
     WiFi.mode(WIFI_OFF);
     status_.tsEvent = millis();
     SERIAL_DELIM
+  }
+
+  /*
+    Simple ping to the gateway
+
+    DESCRIPTION:
+    The method executes ping to the current gateway IP, only if there is
+    connection to a wifi access point.
+    - The ping should detect false wifi status as connected, while the real
+    connection has been broken.
+
+    PARAMETERS:
+    pingCnt - The number of pings executed.
+      - Data type: byte
+      - Default value: 2
+      - Limited range: 0 ~ 255
+
+    RETURN:
+    Boolean flag about pinging to wifi gateway.
+  */
+  bool pingGW(byte pingCnt = 2)
+  {
+    return isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
   }
 
   // Getters

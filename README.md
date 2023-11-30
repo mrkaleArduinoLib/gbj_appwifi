@@ -24,6 +24,7 @@ This is an application library, which is used as a project specific library for 
 * If _WiFiEventStationModeGotIP_ handler is not implemented in the main sketch or from some reasons it does not fire after successful connection, the library simulates its activation.
 * If _WiFiEventStationModeDisconnected_ handler is not implemented in the main sketch or from some reasons it does not fire during repeating waiting for a connection result, the library simulates its activation by a safety counter after safety number of failed connection attempts.
 * The library provides statistical smoothing of <abbr title='Received Signal Strength Indicator'>RSSI</abbr> by `median` from `5` consecutive values in <abbr title='decibel milliwatt'>dBm</abbr>.
+* The library enables a simple ping to the current wifi gateway in order to detect false wifi status as connected.
 
 
 <a id="internals"></a>
@@ -68,6 +69,7 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * [run()](#run)
 * [connectSuccess()](#connectSuccess)
 * [connectFail()](#connectFail)
+* [pingGW()](#pingGW)
 * [getStatus()](#getStatus)
 * [getEventMillis()](#getEventMillis)
 * [getHostname()](#getHostname)
@@ -287,6 +289,28 @@ void setup()
 
 #### See also
 [connectSuccess()](#connectSuccess)
+
+[Back to interface](#interface)
+
+
+<a id="pingGW"></a>
+
+## pingGW()
+
+#### Description
+The method executes ping to the current gateway IP, only if here is connection to a wifi access point.
+* The ping should detect false wifi status as connected, while the real connection has been broken.
+
+#### Syntax
+    bool pingGW(pingCnt)
+
+#### Parameters
+* **pingCnt**: The number of pings executed.
+  * *Valid values*: 0 ~ 255
+  * *Default value*: 2
+
+#### Returns
+Flag about pinging to wifi gateway.
 
 [Back to interface](#interface)
 
