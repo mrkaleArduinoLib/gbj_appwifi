@@ -129,7 +129,6 @@ public:
     smooth_->begin();
     smooth_->getMeasurePtr()->setMedian();
     status_.tsEvent = millis();
-    SERIAL_DELIM
   }
 
   /*
@@ -153,7 +152,6 @@ public:
     status_.waits = 0;
     WiFi.mode(WIFI_OFF);
     status_.tsEvent = millis();
-    SERIAL_DELIM
   }
 
   /*
