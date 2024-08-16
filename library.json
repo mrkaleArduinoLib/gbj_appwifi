@@ -1,6 +1,6 @@
 {
   "name": "gbj_appwifi",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "description": "Library executes and manages connection to a WiFi network.",
   "keywords": "application",
   "repository": {
@@ -17,6 +17,8 @@
     "mrkaleArduinoLib/gbj_appcore": "*",
     "mrkaleArduinoLib/gbj_serial_debug": "*",
     "mrkaleArduinoLib/gbj_appsmooth": "*",
-    "mrkaleArduinoLib/gbj_running": "*"
+    "mrkaleArduinoLib/gbj_running": "*",
+    "dancol90/ESP8266Ping": "*",
+    "marian-craciunescu/ESP32Ping": "*"
   }
 }

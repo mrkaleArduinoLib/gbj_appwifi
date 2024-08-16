@@ -63,9 +63,15 @@ void gbj_appwifi::connect()
      If there is no failure handler implemented in the main sketch, the safety
      counter simulates that handler.
     */
-    else if (status_.waits > Params::PARAM_SAFETY_WAITS)
+    else if (status_.waits >= Params::PARAM_SAFETY_WAITS)
     {
       connectFail();
     }
+#if defined(ESP32)
+    else
+    {
+      delay(Timing::PERIOD_TIMEOUT);
+    }
+#endif
   }
 }

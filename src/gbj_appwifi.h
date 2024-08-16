@@ -25,6 +25,7 @@
   #include <Arduino.h>
   #include <ESP32Ping.h>
   #include <WiFi.h>
+  #include <esp_wifi.h>
 #elif defined(PARTICLE)
   #include <Particle.h>
 #else
@@ -150,8 +151,10 @@ public:
     status_.flHandlerSuccess = false;
     status_.timeWait = status_.timePeriod;
     status_.waits = 0;
-    WiFi.mode(WIFI_OFF);
     status_.tsEvent = millis();
+#if defined(ESP8266)
+    WiFi.mode(WIFI_OFF);
+#endif
   }
 
   /*
@@ -220,10 +223,6 @@ public:
         return SERIAL_F("Connection lost");
         break;
 
-      case WL_WRONG_PASSWORD:
-        return SERIAL_F("Incorrect password");
-        break;
-
       case WL_DISCONNECTED:
         return SERIAL_F("Disconnected");
         break;
@@ -231,7 +230,11 @@ public:
       case WL_NO_SHIELD:
         return SERIAL_F("Wifi shield not present");
         break;
-
+#if defined(ESP8266)
+      case WL_WRONG_PASSWORD:
+        return SERIAL_F("Incorrect password");
+        break;
+#endif
       default:
         return SERIAL_F("Uknown");
         break;
@@ -309,7 +312,7 @@ private:
   }
   inline void setAddressMac()
   {
-    byte mac[WL_MAC_ADDR_LENGTH];
+    byte mac[6];
     WiFi.macAddress(mac);
     sprintf(addressMac_,
             "%02X:%02X:%02X:%02X:%02X:%02X",
