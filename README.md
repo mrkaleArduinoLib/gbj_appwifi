@@ -33,7 +33,7 @@ This is an application library, which is used as a project specific library for 
 Internal parameters are hard-coded in the library as enumerations and none of them have setters or getters associated.
 
 * **Timeout of waiting for connection result** (`1 second`): It is a time interval injected to the system wifi library method called in a loop, which is waiting for connection result.
-* **Default waiting period for next connection attempt** (`15 seconds`): It is a time period since recent failed connection attempt, during which the system is waiting in non-blocking mode for next connection attempt. This time period does not have effect at permanent failures like wrong password or wifi network name. In that cases the wifi management and timeouts are under control of the system library.
+* **Default waiting period for next connection attempt** (`5 seconds`): It is a time period since recent failed connection attempt, during which the system is waiting in non-blocking mode for next connection attempt. This time period does not have effect at permanent failures like wrong password or wifi network name. In that cases the wifi management and timeouts are under control of the system library.
 * **Minimal waiting period for next connection attempt** (`0 seconds`): Minimal value, to which the input value is limited. The zero period means immediate reconnection after connection lost.
 * **Maximal waiting period for next connection attempt** (`60 seconds`): Maximal reasonable value, to which the input value is limited.
 * **Safety number of connection result waits** (`30`): Maximal number of waitings for connection result used by the safety counter for simulating the _WiFiEventStationModeDisconnected_ handler.
@@ -55,9 +55,6 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 #### Espressif ESP32 platform
 * **Arduino.h**: Main include file for the Arduino platform.
 * **WiFi.h**: Main include file for the wifi connection.
-
-#### Particle platform
-* **Particle.h**: Includes alternative (C++) data type definitions.
 
 > Library is not intended to be utilized on platforms without WiFi capabality.
 

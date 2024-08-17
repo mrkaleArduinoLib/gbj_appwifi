@@ -17,17 +17,13 @@
 #ifndef GBJ_APPWIFI_H
 #define GBJ_APPWIFI_H
 
+#include <Arduino.h>
 #if defined(ESP8266)
-  #include <Arduino.h>
   #include <ESP8266Ping.h>
   #include <ESP8266WiFi.h>
 #elif defined(ESP32)
-  #include <Arduino.h>
   #include <ESP32Ping.h>
   #include <WiFi.h>
-  #include <esp_wifi.h>
-#elif defined(PARTICLE)
-  #include <Particle.h>
 #else
   #error !!! Only platforms with WiFi are supported !!!
 #endif
@@ -97,6 +93,9 @@ public:
 
   inline void begin(cbEvent_t cbGotIp, cbEvent_t cbDisconnected)
   {
+#if defined(ESP32)
+    WiFi.mode(WIFI_STA);
+#endif
 #if defined(ESP8266)
     WiFi.onEvent(cbGotIp, WiFiEvent_t::WIFI_EVENT_STAMODE_GOT_IP);
     WiFi.onEvent(cbDisconnected, WiFiEvent_t::WIFI_EVENT_STAMODE_DISCONNECTED);
@@ -285,7 +284,7 @@ private:
   enum Timing : unsigned long
   {
     PERIOD_TIMEOUT = 1 * 1000,
-    PERIOD_CONNECT_DFT = 15 * 1000,
+    PERIOD_CONNECT_DFT = 5 * 1000,
     PERIOD_CONNECT_MIN = 0 * 1000,
     PERIOD_CONNECT_MAX = 60 * 1000,
   };
