@@ -41,6 +41,12 @@
 class gbj_appwifi : public gbj_appcore
 {
 public:
+  // Callback procedures templates
+#if defined(ESP8266)
+  typedef void (*cbEvent_t)(WiFiEvent_t);
+#elif defined(ESP32)
+  typedef void (*cbEvent_t)(arduino_event_id_t, arduino_event_info_t);
+#endif
   /*
     Constructor
 
@@ -89,6 +95,17 @@ public:
     wifi_.secondaryDns = secondaryDns;
   }
 
+  inline void begin(cbEvent_t cbGotIp, cbEvent_t cbDisconnected)
+  {
+#if defined(ESP8266)
+    WiFi.onEvent(cbGotIp, WiFiEvent_t::WIFI_EVENT_STAMODE_GOT_IP);
+    WiFi.onEvent(cbDisconnected, WiFiEvent_t::WIFI_EVENT_STAMODE_DISCONNECTED);
+#elif defined(ESP32)
+    WiFi.onEvent(cbGotIp, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+    WiFi.onEvent(cbDisconnected,
+                 WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+#endif
+  }
   /*
     Processing
 

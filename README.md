@@ -65,7 +65,13 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 <a id="interface"></a>
 
 ## Interface
+
+## Custom data types
+* [cbEvent_t](#cbEvent_t)
+
+## Methods
 * [gbj_appwifi()](#gbj_appwifi)
+* [begin()](#begin)
 * [run()](#run)
 * [connectSuccess()](#connectSuccess)
 * [connectFail()](#connectFail)
@@ -84,7 +90,43 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * [isConnected()](#isConnected)
 
 
+<a id="cbEvent_t"></a>
+
+## cbEvent_t
+
+#### Description
+The template or the signature of a callback function, which is called at particular event in the wifi processing. It is utilized for processing connection process of the MCU to a wifi access point.
+* A callback function can be declared with `void` type as well in the main sketch.
+
+#### Syntax
+    // ESP8266
+    typedef void (*cbEvent_t)(WiFiEvent_t)
+    // ESP32
+    typedef void (*cbEvent_t)(arduino_event_id_t, arduino_event_info_t)
+
+
+#### Parameters
+* **WiFiEvent_t**: Numeric type of an event occured for ESP8266.
+  * *Valid values*: integer
+  * *Default value*: none
+
+* **arduino_event_id_t**: Numeric type of an event occured for ESP32.
+  * *Valid values*: integer
+  * *Default value*: none
+
+* **arduino_event_info_t**: Structure with an event parameters for ESP32.
+  * *Valid values*: structure
+  * *Default value*: none
+
+
+#### Returns
+None
+
+[Back to interface](#interface)
+
+
 <a id="gbj_appwifi"></a>
+
 ## gbj_appwifi()
 
 #### Description
@@ -103,36 +145,29 @@ Overloaded constructor creates the class instance object and initiates internal 
   * *Valid values*: constant pointer to string
   * *Default value*: none
 
-
 * **pass**: Pointer to the passphrase for the wifi network.
   * *Valid values*: constant pointer to string
   * *Default value*: none
-
 
 * **hostname**: Pointer to the hostname for a device on the network.
   * *Valid values*: constant pointer to string
   * *Default value*: none
 
-
 * **staticIp**: IP address to be set as static (fixed) one for the microcontroller. It consists from 4 octets in case of IPv4 addressing and is usually defined as compiler macro in a main sketch.
   * *Data type*: IPAddress
   * *Default value*: none
-
 
 * **gateway**: IP address of the gateway (router) in the network.
   * *Data type*: IPAddress
   * *Default value*: none
 
-
 * **subnet**: Subnet mask of the network. It consists from 4 octets in case of IPv4 addressing.
   * *Data type*: IPAddress
   * *Default value*: none
 
-
 * **primaryDns**: Optional IP address of the primary DNS server used. It can be the address of the gateway, if it ensures DNS connectivity.
   * *Data type*: IPAddress
   * *Default value*: empty address
-
 
 * **secondaryDns**: Optional IP address of the secondary DNS server used. It is empty, if the gateway ensures DNS connectivity.
   * *Data type*: IPAddress
@@ -168,6 +203,33 @@ gbj_appwifi wifi = gbj_appwifi(WIFI_SSID,
                                IPAddress(192, 168, 0, 1),
                                IPAddress(255, 255, 255, 0));
 ```
+
+[Back to interface](#interface)
+
+
+<a id="begin"></a>
+
+## begin()
+
+#### Description
+The initialization method of the instance object, which should be called in the setup section of a sketch.
+* The method registers callback functions for connection and disconnection of the MCU to wifi.
+* Callback functions should be defined in the main sketch.
+
+#### Syntax
+    void begin(cbEvent_t cbGotIp, cbEvent_t cbDisconnected)
+
+#### Parameters
+* **cbGotIp**: Pointer (only name) to a callback function fired at getting the IP address for the MCU, which is the final moment of the successful connection to wifi.
+  * *Valid values*: system address range
+  * *Default value*: none
+
+* **cbDisconnected**: Pointer (only name) to a callback function fired at loosing connection of the MCU to wifi.
+  * *Valid values*: system address range
+  * *Default value*: none
+
+#### Returns
+None
 
 [Back to interface](#interface)
 
@@ -563,7 +625,6 @@ The overloaded method sets a new waiting period for a next reconnection attempt 
 * **period**: Duration of the waiting period in milliseconds.
   * *Valid values*: 0 ~ 2^32 - 1
   * *Default value*: 15000
-
 
 * **periodSec**: Duration of the waiting period in seconds declared as string.
   * *Valid values*: String

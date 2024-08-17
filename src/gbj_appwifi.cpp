@@ -67,11 +67,5 @@ void gbj_appwifi::connect()
     {
       connectFail();
     }
-#if defined(ESP32)
-    else
-    {
-      delay(Timing::PERIOD_TIMEOUT);
-    }
-#endif
   }
 }
