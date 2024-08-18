@@ -93,13 +93,11 @@ public:
 
   inline void begin(cbEvent_t cbGotIp, cbEvent_t cbDisconnected)
   {
-#if defined(ESP32)
-    WiFi.mode(WIFI_STA);
-#endif
 #if defined(ESP8266)
     WiFi.onEvent(cbGotIp, WiFiEvent_t::WIFI_EVENT_STAMODE_GOT_IP);
     WiFi.onEvent(cbDisconnected, WiFiEvent_t::WIFI_EVENT_STAMODE_DISCONNECTED);
 #elif defined(ESP32)
+    WiFi.mode(WIFI_STA);
     WiFi.onEvent(cbGotIp, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
     WiFi.onEvent(cbDisconnected,
                  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
@@ -207,6 +205,7 @@ public:
   inline unsigned long getEventMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
   inline const char *getAddressMac() { return addressMac_; }
+  inline unsigned int getIdMac() { return idMac_; }
   inline const char *getHostname()
   {
     return isConnected() ? WiFi.getHostname() : wifi_.hostname;
@@ -320,6 +319,7 @@ private:
   char addressIp_[16];
   char addressMac_[18];
   char statusText_[30];
+  unsigned int idMac_;
   gbj_appsmooth<gbj_running, int> *smooth_;
   void connect();
   inline void setAddressIp()
@@ -338,6 +338,7 @@ private:
             mac[3],
             mac[4],
             mac[5]);
+    idMac_ = (mac[4] << 8) + mac[5];
   }
 };
 

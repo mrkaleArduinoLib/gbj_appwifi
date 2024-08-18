@@ -78,6 +78,7 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * [getHostname()](#getHostname)
 * [getAddressIp()](#getAddressIp)
 * [getAddressMac()](#getAddressMac)
+* [getIdMac()](#getIdMac)
 * [getRssi()](#getRssi)
 * [getRssiSmooth()](#getRssiSmooth)
 * [setRssiSmooth()](#setRssiSmooth)
@@ -482,9 +483,32 @@ None
 A pointer to the constant string with MAC address of the microcontroller.
 
 #### See also
-[getAddressMac()](#getAddressMac)
+[getIdMac()](#getIdMac)
 
 [getHostname()](#getHostname)
+
+[Back to interface](#interface)
+
+
+<a id="getIdMac"></a>
+
+## getIdMac()
+
+#### Description
+The method returns the identifier of the microcontroller composed of least significat bytes of its MAC address as a 16 bit usigned interger.
+* It might be used as a short microcontroller's identifier, e.g., for ESP-NOW communication in many-to-one pattern.
+
+#### Syntax
+    unsigned it getIdMac()
+
+#### Parameters
+None
+
+#### Returns
+An unsigned integer identifier of the microcontroller.
+
+#### See also
+[getAddressMac()](#getAddressMac)
 
 [Back to interface](#interface)
 
