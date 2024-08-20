@@ -103,12 +103,13 @@ public:
                  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 #endif
   }
+
   /*
     Processing
 
     DESCRIPTION:
     The method should be called in an application sketch loop.
-    It processes main functionality and is control by the internal timer.
+    It processes main functionality and is controlled by the internal timer.
 
     PARAMETERS: None
 
