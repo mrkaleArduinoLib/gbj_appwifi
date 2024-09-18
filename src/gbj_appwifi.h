@@ -63,6 +63,26 @@ public:
       - Data type: constant string
       - Default value: none
       - Limited range: none
+    staticIp - The static IP address of the MCU if defined.
+      - Data type: IPAddress
+      - Default value: empty address
+      - Limited range: IPv4
+    gateway - The IP address of the wifi router (access point).
+      - Data type: IPAddress
+      - Default value: empty address
+      - Limited range: IPv4
+    subnet - The IP address of the wifi subnet.
+      - Data type: IPAddress
+      - Default value: empty address
+      - Limited range: IPv4
+    primaryDns - The IP address of the primary DNS server.
+      - Data type: IPAddress
+      - Default value: empty address
+      - Limited range: IPv4
+    secondaryDns - The IP address of the secondary DNS server.
+      - Data type: IPAddress
+      - Default value: empty address
+      - Limited range: IPv4
 
     RETURN: object
   */
@@ -193,6 +213,33 @@ public:
   bool pingGW(byte pingCnt = 2)
   {
     return isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
+  }
+
+  /*
+    Simple ping to the DNS server
+
+    DESCRIPTION:
+    The method executes ping to the current DNS server IP, only if there is
+    connection to a wifi access point.
+    - The ping should detect disconnection from internet.
+
+    PARAMETERS:
+    dnsIP - The IP address used for pinging.
+      - Data type: IPAddress
+      - Default value: None
+      - Limited range: IPv4
+    pingCnt - The number of pings executed.
+      - Data type: byte
+      - Default value: 2
+      - Limited range: 0 ~ 255
+
+    RETURN:
+    Boolean flag about pinging to wifi gateway.
+  */
+  bool pingDNS(const IPAddress dnsIP, byte pingCnt = 2)
+  {
+    SERIAL_VALUE("Ping DNS IP", dnsIP)
+    return isConnected() ? Ping.ping(dnsIP, pingCnt) : false;
   }
 
   // Getters

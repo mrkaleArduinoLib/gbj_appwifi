@@ -73,6 +73,7 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * [connectSuccess()](#connectSuccess)
 * [connectFail()](#connectFail)
 * [pingGW()](#pingGW)
+* [pingDNS()](#pingDNS)
 * [getStatus()](#getStatus)
 * [getEventMillis()](#getEventMillis)
 * [getHostname()](#getHostname)
@@ -362,7 +363,7 @@ The method executes ping to the current gateway IP, only if here is connection t
 * The ping should detect false wifi status as connected, while the real connection has been broken.
 
 #### Syntax
-    bool pingGW(pingCnt)
+    bool pingGW(byte pingCnt)
 
 #### Parameters
 * **pingCnt**: The number of pings executed.
@@ -370,7 +371,39 @@ The method executes ping to the current gateway IP, only if here is connection t
   * *Default value*: 2
 
 #### Returns
-Flag about pinging to wifi gateway.
+Flag about pinging to a wifi gateway.
+
+#### See also
+[pingDNS()](#pingDNS)
+
+[Back to interface](#interface)
+
+
+<a id="pingDNS"></a>
+
+## pingDNS()
+
+#### Description
+The method executes ping to the DNS server IP defined as input argument only if where is a connection to a wifi access point.
+* The ping should detect disconnection from internet.
+
+#### Syntax
+    bool pingDNS(const IPAddress dnsIP, byte pingCnt)
+
+#### Parameters
+* **dnsIP**: The IP address used for pinging.
+  * *Valid values*: IPv4
+  * *Default value*: None
+
+* **pingCnt**: The number of pings executed.
+  * *Valid values*: 0 ~ 255
+  * *Default value*: 2
+
+#### Returns
+Flag about pinging to a DNS server.
+
+#### See also
+[pingGW()](#pingGW)
 
 [Back to interface](#interface)
 
