@@ -87,6 +87,7 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * [getPeriod()](#getPeriod)
 * [setPeriod()](#setPeriod)
 * [isConnected()](#isConnected)
+* [isContact()](#isContact)
 
 
 <a id="cbEvent_t"></a>
@@ -708,5 +709,27 @@ None
 
 #### Returns
 Flag about connecting status to wifi.
+
+[Back to interface](#interface)
+
+
+<a id="isContact"></a>
+
+## isContact()
+
+#### Description
+The method returns a flag whether the microcontroller is really connected to the wifi, i.e., it provides ping to a gateway as well.
+
+#### Syntax
+    bool isContact()
+
+#### Parameters
+None
+
+#### Returns
+Flag about connecting status to wifi.
+
+#### See also
+[isConnected()](#isConnected)
 
 [Back to interface](#interface)

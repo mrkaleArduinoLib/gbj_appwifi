@@ -212,6 +212,7 @@ public:
   */
   bool pingGW(byte pingCnt = 2)
   {
+    SERIAL_TITLE("Ping GW")
     return isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
   }
 
@@ -244,6 +245,7 @@ public:
 
   // Getters
   inline bool isConnected() { return WiFi.isConnected(); }
+  inline bool isContact() { return isConnected() && pingGW(); }
   inline int getRssi() { return WiFi.RSSI(); }
   inline int getRssiSmooth()
   {
