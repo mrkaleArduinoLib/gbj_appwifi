@@ -212,8 +212,11 @@ public:
   */
   bool pingGW(byte pingCnt = 2)
   {
-    SERIAL_TITLE("Ping GW")
-    return isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
+    SERIAL_VALUE("Ping GW", WiFi.gatewayIP())
+    bool flag =
+      WiFi.isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
+    SERIAL_VALUE("Ping GW", flag ? "SUCCESS" : "ERROR")
+    return flag;
   }
 
   /*
@@ -239,8 +242,10 @@ public:
   */
   bool pingDNS(const IPAddress dnsIP, byte pingCnt = 2)
   {
-    SERIAL_VALUE("Ping DNS IP", dnsIP)
-    return isConnected() ? Ping.ping(dnsIP, pingCnt) : false;
+    SERIAL_VALUE("Ping DNS", dnsIP)
+    bool flag = WiFi.isConnected() ? Ping.ping(dnsIP, pingCnt) : false;
+    SERIAL_VALUE("Ping DNS", flag ? "SUCCESS" : "ERROR")
+    return flag;
   }
 
   // Getters
