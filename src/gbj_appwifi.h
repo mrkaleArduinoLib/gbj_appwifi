@@ -188,7 +188,7 @@ public:
     status_.waits = 0;
     status_.tsEvent = millis();
 #if defined(ESP8266)
-    WiFi.mode(WIFI_OFF);
+    WiFi.mode(WIFI_OFF); // Calls event 'cbDisconnected'
 #endif
   }
 
