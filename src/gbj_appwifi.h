@@ -197,9 +197,12 @@ public:
 
     DESCRIPTION:
     The method executes ping to the current gateway IP, only if there is
-    connection to a wifi access point.
+    a connection to a wifi access point.
     - The ping should detect false wifi status as connected, while the real
     connection has been broken.
+    - The success ping result is "cached" for a while in order to eliminate
+    frequent pinging from various methods. In normal operation
+    state the real pinging is executed usually once a minute.
 
     PARAMETERS:
     pingCnt - The number of pings executed.
@@ -212,11 +215,16 @@ public:
   */
   bool pingGW(byte pingCnt = 2)
   {
-    SERIAL_VALUE("Ping GW", WiFi.gatewayIP())
-    bool flag =
-      WiFi.isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
-    SERIAL_VALUE("Ping GW", flag ? "SUCCESS" : "ERROR")
-    return flag;
+    if (!status_.flLastPingGW ||
+        millis() - status_.tsPingGW > Timing::PERIOD_PINGGW)
+    {
+      status_.tsPingGW = millis();
+      SERIAL_VALUE("Ping GW", WiFi.gatewayIP())
+      status_.flLastPingGW =
+        WiFi.isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
+      SERIAL_VALUE("Ping GW", status_.flLastPingGW ? "SUCCESS" : "ERROR")
+    }
+    return status_.flLastPingGW;
   }
 
   /*
@@ -341,6 +349,8 @@ private:
     PERIOD_CONNECT_DFT = 5 * 1000,
     PERIOD_CONNECT_MIN = 0 * 1000,
     PERIOD_CONNECT_MAX = 60 * 1000,
+    PERIOD_PING = 5 * 60 * 1000,
+    PERIOD_PINGGW = 1 * 60 * 1000,
   };
   enum Params : byte
   {
@@ -359,9 +369,9 @@ private:
   } wifi_;
   struct Status
   {
-    unsigned long tsEvent, timeWait;
+    unsigned long tsEvent, tsPingGW, timeWait;
     unsigned long timePeriod = Timing::PERIOD_CONNECT_DFT;
-    bool flBegin, flHandlerSuccess;
+    bool flBegin, flHandlerSuccess, flLastPingGW;
     byte waits;
     void init()
     {

@@ -36,6 +36,8 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 * **Default waiting period for next connection attempt** (`5 seconds`): It is a time period since recent failed connection attempt, during which the system is waiting in non-blocking mode for next connection attempt. This time period does not have effect at permanent failures like wrong password or wifi network name. In that cases the wifi management and timeouts are under control of the system library.
 * **Minimal waiting period for next connection attempt** (`0 seconds`): Minimal value, to which the input value is limited. The zero period means immediate reconnection after connection lost.
 * **Maximal waiting period for next connection attempt** (`60 seconds`): Maximal reasonable value, to which the input value is limited.
+* **Caching period of the pinging result to a gateway** (`1 minute`). Time period for caching successful ping result to a gateway (wifi router). If the ping is requested sooner after previous real pinging, the result of that ping is return instead of providing the real ping. The time period prevents frequent pinging to the gateway provided by various methods of a firmware.
+* **Refreshing period of the pinging result to a gateway** (`5 minutes`): Time period for repeating ping to the gateway (wifi router) at active connection to wifi. This helps to determine broken connection to wifi even if the system connection check is successful, so that it prevents false positive wifi connection status. Thanks to caching pinging result, the real ping is executed at refreshing only if has not been provided recently withing caching period.
 * **Safety number of connection result waits** (`30`): Maximal number of waitings for connection result used by the safety counter for simulating the _WiFiEventStationModeDisconnected_ handler.
 
 
@@ -360,8 +362,9 @@ void setup()
 ## pingGW()
 
 #### Description
-The method executes ping to the current gateway IP, only if here is connection to a wifi access point.
+The method executes ping to the current gateway IP, only if there is a connection to a wifi access point.
 * The ping should detect false wifi status as connected, while the real connection has been broken.
+* The success ping result is cached in order to eliminate frequent pinging from various methods. In normal operation state the real pinging is executed usually at most once a minute.
 
 #### Syntax
     bool pingGW(byte pingCnt)

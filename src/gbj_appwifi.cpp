@@ -2,8 +2,25 @@
 
 void gbj_appwifi::connect()
 {
-  if (WiFi.status() == WL_CONNECTED)
+  /*
+  Check wifi connection by pinging to gateway periodically even if there is the
+  wifi status as connected in order to detect a false success connection status.
+  */
+  if (millis() - status_.tsEvent > Timing::PERIOD_PING)
   {
+    if (isContact())
+    {
+      status_.tsEvent = millis();
+      return;
+    }
+    else
+    {
+      WiFi.disconnect();
+    }
+  }
+  else if (isConnected())
+  {
+    // Also false connection status
     return;
   }
   /*
