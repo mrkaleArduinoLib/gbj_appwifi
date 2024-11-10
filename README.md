@@ -66,6 +66,8 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 ## Interface
 
 ## Custom data types
+* [cbGotIP_t](#cbGotIP_t)
+* [cbDisconnect_t](#cbDisconnect_t)
 * [cbEvent_t](#cbEvent_t)
 
 ## Methods
@@ -97,27 +99,68 @@ Internal parameters are hard-coded in the library as enumerations and none of th
 ## cbEvent_t
 
 #### Description
-The template or the signature of a callback function, which is called at particular event in the wifi processing. It is utilized for processing connection process of the MCU to a wifi access point.
+The template or the signature of a callback function for ESP32 microcontroller, which is called at particular event in the wifi processing. It is utilized for processing connection process of the MCU to a wifi access point.
 * A callback function can be declared with `void` type as well in the main sketch.
 
 #### Syntax
-    // ESP8266
-    typedef void (*cbEvent_t)(WiFiEvent_t)
-    // ESP32
     typedef void (*cbEvent_t)(arduino_event_id_t, arduino_event_info_t)
 
 
 #### Parameters
-* **WiFiEvent_t**: Numeric type of an event occured for ESP8266.
+* **arduino_event_id_t**: Numeric type of an event occured.
   * *Valid values*: integer
   * *Default value*: none
 
-* **arduino_event_id_t**: Numeric type of an event occured for ESP32.
-  * *Valid values*: integer
-  * *Default value*: none
-
-* **arduino_event_info_t**: Structure with an event parameters for ESP32.
+* **arduino_event_info_t**: Structure with an event parameters.
   * *Valid values*: structure
+  * *Default value*: none
+
+
+#### Returns
+None
+
+[Back to interface](#interface)
+
+
+<a id="cbGotIP_t"></a>
+
+## cbGotIP_t
+
+#### Description
+The template or the signature of a callback function for ESP8266 microcontroller, which is called at gaining an IP address after connecting to a wifi access point.
+* A callback function can be declared with `void` type as well in the main sketch.
+
+#### Syntax
+    typedef void (*cbGotIP_t)(const WiFiEventStationModeGotIP &)
+
+
+#### Parameters
+* **WiFiEventStationModeGotIP**: Template of a callback function called at gaining IP address.
+  * *Valid values*: pointer
+  * *Default value*: none
+
+
+#### Returns
+None
+
+[Back to interface](#interface)
+
+
+<a id="cbDisconnect_t"></a>
+
+## cbDisconnect_t
+
+#### Description
+The template or the signature of a callback function for ESP8266 microcontroller, which is called at disconnecting from a wifi access point.
+* A callback function can be declared with `void` type as well in the main sketch.
+
+#### Syntax
+    typedef void (*cbDisconnect_t)(const WiFiEventStationModeDisconnected &);
+
+
+#### Parameters
+* **WiFiEventStationModeDisconnected**: Template of a callback function called at disconnecting from access point.
+  * *Valid values*: pointer
   * *Default value*: none
 
 
@@ -219,15 +262,20 @@ The initialization method of the instance object, which should be called in the 
 * Callback functions should be defined in the main sketch.
 
 #### Syntax
+
+    // ESP8266
+    void begin(cbGotIP_t cbGotIp, cbDisconnect_t cbDisconnected)
+
+    // ESP32
     void begin(cbEvent_t cbGotIp, cbEvent_t cbDisconnected)
 
 #### Parameters
 * **cbGotIp**: Pointer (only name) to a callback function fired at getting the IP address for the MCU, which is the final moment of the successful connection to wifi.
-  * *Valid values*: system address range
+  * *Valid values*: pointer
   * *Default value*: none
 
 * **cbDisconnected**: Pointer (only name) to a callback function fired at loosing connection of the MCU to wifi.
-  * *Valid values*: system address range
+  * *Valid values*: pointer
   * *Default value*: none
 
 #### Returns

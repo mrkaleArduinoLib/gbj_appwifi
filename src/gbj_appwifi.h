@@ -39,7 +39,9 @@ class gbj_appwifi : public gbj_appcore
 public:
   // Callback procedures templates
 #if defined(ESP8266)
-  typedef void (*cbEvent_t)(WiFiEvent_t);
+  // typedef void (*cbEvent_t)(WiFiEvent_t);
+  typedef void (*cbGotIP_t)(const WiFiEventStationModeGotIP &);
+  typedef void (*cbDisconnect_t)(const WiFiEventStationModeDisconnected &);
 #elif defined(ESP32)
   typedef void (*cbEvent_t)(arduino_event_id_t, arduino_event_info_t);
 #endif
@@ -111,18 +113,21 @@ public:
     wifi_.secondaryDns = secondaryDns;
   }
 
+#if defined(ESP8266)
+  inline void begin(cbGotIP_t cbGotIp, cbDisconnect_t cbDisconnected)
+  {
+    onGotIpHandler_ = WiFi.onStationModeGotIP(cbGotIp);
+    onDisconnectHandler_ = WiFi.onStationModeDisconnected(cbDisconnected);
+  }
+#elif defined(ESP32)
   inline void begin(cbEvent_t cbGotIp, cbEvent_t cbDisconnected)
   {
-#if defined(ESP8266)
-    WiFi.onEvent(cbGotIp, WiFiEvent_t::WIFI_EVENT_STAMODE_GOT_IP);
-    WiFi.onEvent(cbDisconnected, WiFiEvent_t::WIFI_EVENT_STAMODE_DISCONNECTED);
-#elif defined(ESP32)
     WiFi.mode(WIFI_STA);
     WiFi.onEvent(cbGotIp, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
     WiFi.onEvent(cbDisconnected,
                  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-#endif
   }
+#endif
 
   /*
     Processing
@@ -386,6 +391,9 @@ private:
   char statusText_[30];
   unsigned int idMac_;
   gbj_appsmooth<gbj_running, int> *smooth_;
+#if defined(ESP8266)
+  WiFiEventHandler onGotIpHandler_, onDisconnectHandler_;
+#endif
   void connect();
   inline void setAddressIp()
   {
