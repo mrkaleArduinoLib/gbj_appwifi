@@ -146,8 +146,7 @@ public:
     Activity at connection success
 
     DESCRIPTION:
-    The method should be called in "WiFiEventHandler" for event
-    "WiFiEventStationModeGotIP".
+    The method should be called in hander for event GotIP.
 
     PARAMETERS: None
 
@@ -176,8 +175,7 @@ public:
     Activity at connection failure
 
     DESCRIPTION:
-    The method should be called in "WiFiEventHandler" for event
-    "WiFiEventStationModeDisconnected".
+    The method should be called in hander for event Disconnected.
 
     PARAMETERS: None
 
