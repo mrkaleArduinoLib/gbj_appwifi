@@ -34,6 +34,8 @@
 
 #undef SERIAL_PREFIX
 #define SERIAL_PREFIX "gbj_appwifi"
+
+// Class definition for wifi processing
 class gbj_appwifi : public gbj_appcore
 {
 public:
@@ -45,48 +47,22 @@ public:
 #elif defined(ESP32)
   typedef void (*cbEvent_t)(arduino_event_id_t, arduino_event_info_t);
 #endif
-  /*
-    Constructor
 
-    DESCRIPTION:
-    Constructor creates the class instance object and sets credentials for
-    wifi.
+  /** Constructor.
 
-    PARAMETERS:
-    ssid - The name of a wifi network to connect to.
-      - Data type: constant string
-      - Default value: none
-      - Limited range: none
-    pass - The passphrase for a wifi network.
-      - Data type: constant string
-      - Default value: none
-      - Limited range: none
-    hostname - The hostname for a device on the network.
-      - Data type: constant string
-      - Default value: none
-      - Limited range: none
-    staticIp - The static IP address of the MCU if defined.
-      - Data type: IPAddress
-      - Default value: empty address
-      - Limited range: IPv4
-    gateway - The IP address of the wifi router (access point).
-      - Data type: IPAddress
-      - Default value: empty address
-      - Limited range: IPv4
-    subnet - The IP address of the wifi subnet.
-      - Data type: IPAddress
-      - Default value: empty address
-      - Limited range: IPv4
-    primaryDns - The IP address of the primary DNS server.
-      - Data type: IPAddress
-      - Default value: empty address
-      - Limited range: IPv4
-    secondaryDns - The IP address of the secondary DNS server.
-      - Data type: IPAddress
-      - Default value: empty address
-      - Limited range: IPv4
+  Constructor creates the class instance object and sets credentials for
+  wifi.
 
-    RETURN: object
+  @param ssid Name of a wifi network to connect to.
+  @param pass Passphrase for a wifi network.
+  @param hostname Hostname for a device on the network.
+  @param staticIp Static IP address of the MCU if defined.
+  @param gateway IP address of the wifi router (access point).
+  @param subnet IP address of the wifi subnet.
+  @param primaryDns IP address of the primary DNS server.
+  @param secondaryDns IP address of the secondary DNS server.
+
+  @returns object
   */
   inline gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
   {
@@ -129,28 +105,12 @@ public:
   }
 #endif
 
-  /*
-    Processing
-
-    DESCRIPTION:
-    The method should be called in an application sketch loop.
-    It processes main functionality and is controlled by the internal timer.
-
-    PARAMETERS: None
-
-    RETURN: none
-  */
+  // Processing
   inline void run() { connect(); }
 
-  /*
-    Activity at connection success
+  /** Activity at connection success.
 
-    DESCRIPTION:
-    The method should be called in hander for event GotIP.
-
-    PARAMETERS: None
-
-    RETURN: none
+  The method should be called in hander for event GotIP.
   */
   void connectSuccess()
   {
@@ -171,15 +131,9 @@ public:
     status_.tsEvent = millis();
   }
 
-  /*
-    Activity at connection failure
+  /**  Activity at connection failure.
 
-    DESCRIPTION:
-    The method should be called in hander for event Disconnected.
-
-    PARAMETERS: None
-
-    RETURN: none
+  The method should be called in hander for event Disconnected.
   */
   void connectFail()
   {
@@ -195,78 +149,58 @@ public:
 #endif
   }
 
-  /*
-    Simple ping to the gateway
+  /** Simple ping to the gateway.
 
-    DESCRIPTION:
-    The method executes ping to the current gateway IP, only if there is
-    a connection to a wifi access point.
-    - The ping should detect false wifi status as connected, while the real
-    connection has been broken.
-    - The success ping result is "cached" for a while in order to eliminate
-    frequent pinging from various methods. In normal operation
-    state the real pinging is executed usually once a minute.
+  The method executes ping to the current gateway IP, only if there is
+  a connection to a wifi access point. The ping detects false wifi status as
+  connected, while the real connection has been broken.
 
-    PARAMETERS:
-    pingCnt - The number of pings executed.
-      - Data type: byte
-      - Default value: 2
-      - Limited range: 0 ~ 255
+  @param pingCnt The byte number of pings executed.
 
-    RETURN:
-    Boolean flag about pinging to wifi gateway.
+  @returns Boolean success flag about pinging to wifi gateway.
   */
   bool pingGW(byte pingCnt = 2)
   {
-    if (!status_.flLastPingGW ||
-        millis() - status_.tsPingGW > Timing::PERIOD_PINGGW)
-    {
-      status_.tsPingGW = millis();
-      SERIAL_VALUE("Ping GW", WiFi.gatewayIP())
-      status_.flLastPingGW =
-        WiFi.isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
-      SERIAL_VALUE("Ping GW", status_.flLastPingGW ? "SUCCESS" : "ERROR")
-    }
-    return status_.flLastPingGW;
+    bool flResult =
+      WiFi.isConnected() ? Ping.ping(WiFi.gatewayIP(), pingCnt) : false;
+    SERIAL_VALUE("Ping GW", flResult ? "SUCCESS" : "ERROR")
+    return flResult;
   }
 
-  /*
-    Simple ping to the DNS server
+  /** Simple ping to a DNS server.
 
-    DESCRIPTION:
-    The method executes ping to the current DNS server IP, only if there is
-    connection to a wifi access point.
-    - The ping should detect disconnection from internet.
+  The method executes ping to the current DNS server IP, only if there is
+  connection to a wifi access point. The ping detects disconnection from
+  internet.
 
-    PARAMETERS:
-    dnsIP - The IP address used for pinging.
-      - Data type: IPAddress
-      - Default value: None
-      - Limited range: IPv4
-    pingCnt - The number of pings executed.
-      - Data type: byte
-      - Default value: 2
-      - Limited range: 0 ~ 255
+  @param dnsIP The IP address used for pinging.
+  @param pingCnt The byte number of pings executed.
 
-    RETURN:
-    Boolean flag about pinging to wifi gateway.
+  @returns Boolean success flag about pinging to wifi gateway.
   */
   bool pingDNS(const IPAddress dnsIP, byte pingCnt = 2)
   {
-    SERIAL_VALUE("Ping DNS", dnsIP)
-    bool flag = WiFi.isConnected() ? Ping.ping(dnsIP, pingCnt) : false;
-    SERIAL_VALUE("Ping DNS", flag ? "SUCCESS" : "ERROR")
-    return flag;
+    bool flResult = WiFi.isConnected() ? Ping.ping(dnsIP, pingCnt) : false;
+    SERIAL_VALUE_VALUE(
+      "Ping DNS", dnsIP, "Result", flResult ? "SUCCESS" : "ERROR")
+    return flResult;
   }
 
-  // Getters
+  // Return success flag about wifi connection to AP
   inline bool isConnected() { return WiFi.isConnected(); }
+
+  // Return success flag about wifi connection and pinging to AP
   inline bool isContact() { return isConnected() && pingGW(); }
+
+  // Return current RSSI value
   inline int getRssi() { return WiFi.RSSI(); }
+
+  // Return statistically smoothed RSSI value
   inline int getRssiSmooth()
   {
     return isConnected() ? smooth_->getValue() : getRssi();
   }
+
   inline unsigned long getPeriod() { return status_.timePeriod; }
   inline unsigned long getEventMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
@@ -352,8 +286,6 @@ private:
     PERIOD_CONNECT_DFT = 5 * 1000,
     PERIOD_CONNECT_MIN = 0 * 1000,
     PERIOD_CONNECT_MAX = 60 * 1000,
-    PERIOD_PING = 5 * 60 * 1000,
-    PERIOD_PINGGW = 1 * 60 * 1000,
   };
   enum Params : byte
   {
@@ -372,9 +304,9 @@ private:
   } wifi_;
   struct Status
   {
-    unsigned long tsEvent, tsPingGW, timeWait;
+    unsigned long tsEvent, timeWait;
     unsigned long timePeriod = Timing::PERIOD_CONNECT_DFT;
-    bool flBegin, flHandlerSuccess, flLastPingGW;
+    bool flBegin, flHandlerSuccess;
     byte waits;
     void init()
     {
