@@ -49,21 +49,21 @@ public:
 #endif
 
   /** Constructor.
-
-  Constructor creates the class instance object and sets credentials for
-  wifi.
-
-  @param ssid Name of a wifi network to connect to.
-  @param pass Passphrase for a wifi network.
-  @param hostname Hostname for a device on the network.
-  @param staticIp Static IP address of the MCU if defined.
-  @param gateway IP address of the wifi router (access point).
-  @param subnet IP address of the wifi subnet.
-  @param primaryDns IP address of the primary DNS server.
-  @param secondaryDns IP address of the secondary DNS server.
-
-  @returns object
-  */
+   *
+   * Constructor creates the class instance object and sets credentials for
+   * wifi.
+   *
+   * @param ssid Name of a wifi network to connect to.
+   * @param pass Passphrase for a wifi network.
+   * @param hostname Hostname for a device on the network.
+   * @param staticIp Static IP address of the MCU if defined.
+   * @param gateway IP address of the wifi router (access point).
+   * @param subnet IP address of the wifi subnet.
+   * @param primaryDns IP address of the primary DNS server.
+   * @param secondaryDns IP address of the secondary DNS server.
+   *
+   * @returns object
+   */
   inline gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
   {
     wifi_.ssid = ssid;
@@ -109,9 +109,8 @@ public:
   inline void run() { connect(); }
 
   /** Activity at connection success.
-
-  The method should be called in hander for event GotIP.
-  */
+   * The method should be called in hander for event GotIP.
+   */
   void connectSuccess()
   {
     SERIAL_VALUE("connectSuccess()", getStatus())
@@ -131,10 +130,9 @@ public:
     status_.tsEvent = millis();
   }
 
-  /**  Activity at connection failure.
-
-  The method should be called in hander for event Disconnected.
-  */
+  /** Activity at connection failure.
+   * The method should be called in hander for event Disconnected.
+   */
   void connectFail()
   {
     SERIAL_VALUE("connectFail()", getStatus())
@@ -151,14 +149,14 @@ public:
 
   /** Simple ping to the gateway.
 
-  The method executes ping to the current gateway IP, only if there is
-  a connection to a wifi access point. The ping detects false wifi status as
-  connected, while the real connection has been broken.
-
-  @param pingCnt The byte number of pings executed.
-
-  @returns Boolean success flag about pinging to wifi gateway.
-  */
+   * The method executes ping to the current gateway IP, only if there is
+   * connection to a wifi access point. The ping detects false wifi status as
+   * connected, while the real connection has been broken.
+   *
+   * @param pingCnt The byte number of pings executed.
+   *
+   * @returns Boolean success flag about pinging to wifi gateway.
+   */
   bool pingGW(byte pingCnt = 2)
   {
     bool flResult =
@@ -168,37 +166,46 @@ public:
   }
 
   /** Simple ping to a DNS server.
-
-  The method executes ping to the current DNS server IP, only if there is
-  connection to a wifi access point. The ping detects disconnection from
-  internet.
-
-  @param dnsIP The IP address used for pinging.
-  @param pingCnt The byte number of pings executed.
-
-  @returns Boolean success flag about pinging to wifi gateway.
-  */
+   *
+   * The method executes ping to the current DNS server IP, only if there is
+   * connection to a wifi access point. The ping detects disconnection from
+   * internet.
+   *
+   * @param dnsIP The IP address used for pinging.
+   * @param pingCnt The byte number of pings executed.
+   *
+   * @returns Boolean success flag about pinging to wifi gateway.
+   */
   bool pingDNS(const IPAddress dnsIP, byte pingCnt = 2)
   {
     bool flResult = WiFi.isConnected() ? Ping.ping(dnsIP, pingCnt) : false;
-    SERIAL_VALUE_VALUE(
-      "Ping DNS", dnsIP, "Result", flResult ? "SUCCESS" : "ERROR")
+    SERIAL_LOG3("Ping DNS to", dnsIP, flResult ? " SUCCESS" : " ERROR")
     return flResult;
   }
 
-  // Return success flag about wifi connection to AP
+  // Success flag about wifi connection to AP
   inline bool isConnected() { return WiFi.isConnected(); }
 
-  // Return success flag about wifi connection and pinging to AP
+  // Success flag about wifi connection and pinging to AP
   inline bool isContact() { return isConnected() && pingGW(); }
 
-  // Return current RSSI value
+  // Current RSSI value
   inline int getRssi() { return WiFi.RSSI(); }
 
-  // Return statistically smoothed RSSI value
+  // Statistically smoothed RSSI value
   inline int getRssiSmooth()
   {
-    return isConnected() ? smooth_->getValue() : getRssi();
+    int result;
+    if (isConnected())
+    {
+      smooth_->setValue(getRssi());
+      result = smooth_->getValue();
+    }
+    else
+    {
+      result = getRssi();
+    }
+    return result;
   }
 
   inline unsigned long getPeriod() { return status_.timePeriod; }
@@ -255,16 +262,6 @@ public:
         break;
     }
     return statusText_;
-  }
-
-  // Setters
-  inline int setRssiSmooth()
-  {
-    if (isConnected())
-    {
-      smooth_->setValue(getRssi());
-    }
-    return getRssiSmooth();
   }
 
   // Set reconnect period inputed as unsigned long in milliseconds
