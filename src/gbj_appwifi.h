@@ -109,7 +109,8 @@ public:
   inline void run() { connect(); }
 
   /** Activity at connection success.
-   * The method should be called in hander for event GotIP.
+   *
+   * The method should be called in handler for event GotIP.
    */
   void connectSuccess()
   {
@@ -131,7 +132,8 @@ public:
   }
 
   /** Activity at connection failure.
-   * The method should be called in hander for event Disconnected.
+   *
+   * The method should be called in handler for event Disconnected.
    */
   void connectFail()
   {
