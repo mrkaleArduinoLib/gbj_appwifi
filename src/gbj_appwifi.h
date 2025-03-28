@@ -1,18 +1,15 @@
-/*
-  NAME:
-  gbj_appwifi
-
-  DESCRIPTION:
-  Application library for processing connection to an access point over WiFi.
-
-  LICENSE:
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the license GNU GPL v3
-  http://www.gnu.org/licenses/gpl-3.0.html (related to original code) and MIT
-  License (MIT) for added code.
-
-  CREDENTIALS:
-  Author: Libor Gabaj
+/** gbj_appwifi
+ *
+ * @brief Application library for processing connection to an access point over
+ * WiFi.
+ *
+ * @copyright This program is free software; you can redistribute it and/or
+ * modify it under the terms of the license GNU GPL v3
+ * http://www.gnu.org/licenses/gpl-3.0.html (related to original code) and MIT
+ * License (MIT) for added code.
+ *
+ * @author Libor Gabaj
+ *
  */
 #ifndef GBJ_APPWIFI_H
 #define GBJ_APPWIFI_H
@@ -27,21 +24,18 @@
 #else
   #error !!! Only platforms with WiFi are supported !!!
 #endif
-#include "gbj_appcore.h"
-#include "gbj_appsmooth.h"
-#include "gbj_running.h"
+#include "gbj_appbase.h"
 #include "gbj_serial_debug.h"
 
 #undef SERIAL_PREFIX
 #define SERIAL_PREFIX "gbj_appwifi"
 
 // Class definition for wifi processing
-class gbj_appwifi : public gbj_appcore
+class gbj_appwifi : public gbj_appbase
 {
 public:
   // Callback procedures templates
 #if defined(ESP8266)
-  // typedef void (*cbEvent_t)(WiFiEvent_t);
   typedef void (*cbGotIP_t)(const WiFiEventStationModeGotIP &);
   typedef void (*cbDisconnect_t)(const WiFiEventStationModeDisconnected &);
 #elif defined(ESP32)
@@ -50,8 +44,8 @@ public:
 
   /** Constructor.
    *
-   * Constructor creates the class instance object and sets credentials for
-   * wifi.
+   * @brief Constructor creates the class instance object and sets credentials
+   * for wifi.
    *
    * @param ssid Name of a wifi network to connect to.
    * @param pass Passphrase for a wifi network.
@@ -63,14 +57,13 @@ public:
    * @param secondaryDns IP address of the secondary DNS server.
    *
    * @returns object
+   *
    */
   inline gbj_appwifi(const char *ssid, const char *pass, const char *hostname)
   {
     wifi_.ssid = ssid;
     wifi_.pass = pass;
     wifi_.hostname = hostname;
-    status_.init();
-    smooth_ = new gbj_appsmooth<gbj_running, int>();
   }
   inline gbj_appwifi(const char *ssid,
                      const char *pass,
@@ -105,16 +98,28 @@ public:
   }
 #endif
 
-  // Processing
-  inline void run() { connect(); }
+  /** Processing */
+  inline void run()
+  {
+    if (WiFi.isConnected())
+    {
+      check();
+    }
+    else
+    {
+      connect();
+    }
+  }
 
   /** Activity at connection success.
    *
-   * The method should be called in handler for event GotIP.
+   * @warning The method should be called in handler for event GotIP.
+   *
    */
   void connectSuccess()
   {
     SERIAL_VALUE("connectSuccess()", getStatus())
+    connection_.init();
     setAddressIp();
     setAddressMac();
     SERIAL_VALUE("IP", WiFi.localIP())
@@ -122,42 +127,34 @@ public:
     SERIAL_VALUE("SSID", wifi_.ssid)
     SERIAL_VALUE("Hostname", wifi_.hostname)
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
-    WiFi.setAutoReconnect(false);
-    WiFi.persistent(false);
-    status_.init();
-    status_.flHandlerSuccess = true;
-    smooth_->begin();
-    smooth_->getMeasurePtr()->setMedian();
-    status_.tsEvent = millis();
+    ping_.tsPing = millis();
   }
 
   /** Activity at connection failure.
    *
-   * The method should be called in handler for event Disconnected.
+   * @warning The method should be called in handler for event Disconnected.
+   *
    */
   void connectFail()
   {
     SERIAL_VALUE("connectFail()", getStatus())
-    SERIAL_VALUE("delay", millis() - status_.tsEvent)
-    status_.flBegin = true;
-    status_.flHandlerSuccess = false;
-    status_.timeWait = status_.timePeriod;
-    status_.waits = 0;
-    status_.tsEvent = millis();
-#if defined(ESP8266)
-    WiFi.mode(WIFI_OFF); // Calls event 'cbDisconnected'
-#endif
+    connection_.reset();
+    connection_.flDisconnect = true;
+    #if defined(ESP8266)
+        WiFi.mode(WIFI_OFF);
+    #endif
   }
 
   /** Simple ping to the gateway.
 
-   * The method executes ping to the current gateway IP, only if there is
+   * @brief The method executes ping to the current gateway IP, only if there is
    * connection to a wifi access point. The ping detects false wifi status as
    * connected, while the real connection has been broken.
    *
    * @param pingCnt The byte number of pings executed.
    *
    * @returns Boolean success flag about pinging to wifi gateway.
+   *
    */
   bool pingGW(byte pingCnt = 2)
   {
@@ -167,51 +164,61 @@ public:
     return flResult;
   }
 
-  /** Simple ping to a DNS server.
+  /** Set pinging period.
    *
-   * The method executes ping to the current DNS server IP, only if there is
-   * connection to a wifi access point. The ping detects disconnection from
-   * internet.
+   * @brief The method is overloaded and sets time period for pinging to DNS
+   * servers.
    *
-   * @param dnsIP The IP address used for pinging.
-   * @param pingCnt The byte number of pings executed.
+   * @note If the input time period is of type integer, it is considered to be
+   * in milliseconds.
+   * @note If the input time period is of type string, it is considered to be in
+   * seconds.
+   * @note If no input time period is provided, the setter sets the default
+   * period hardcoded in the library.
    *
-   * @returns Boolean success flag about pinging to wifi gateway.
+   * @param period Numerical time period for generating heartbeat pulses in
+   * milliseconds.
+   * @param periodSec Textual time period for generating heartbeat pulses in
+   * seconds.
+   *
    */
-  bool pingDNS(const IPAddress dnsIP, byte pingCnt = 2)
+  inline void setPeriod(unsigned long period = 0)
   {
-    bool flResult = WiFi.isConnected() ? Ping.ping(dnsIP, pingCnt) : false;
-    SERIAL_LOG3("Ping DNS to", dnsIP, flResult ? " SUCCESS" : " ERROR")
-    return flResult;
+    ping_.period = (period == 0 ? Timing::PERIOD_PING : period);
   }
+  inline void setPeriod(String periodSec)
+  {
+    setPeriod(1000 * (unsigned long)periodSec.toInt());
+  }
+
+  // Current pinging period
+  inline unsigned long getPeriod() { return ping_.period; }
+
+  // Enable pinging to the gateway
+  inline void enablePing()
+  {
+    ping_.flEnabled = true;
+    ping_.tsPing = millis();
+  }
+
+  // Disable pinging to the gateway
+  inline void disablePing() { ping_.flEnabled = false; }
+
+  // Flag about enabled pinging to the DNS
+  inline bool isPingEnabled() { return ping_.flEnabled; }
+
+  // Flag about disabled pinging to the DNS
+  inline bool isPingDisabled() { return !ping_.flEnabled; }
 
   // Success flag about wifi connection to AP
   inline bool isConnected() { return WiFi.isConnected(); }
 
   // Success flag about wifi connection and pinging to AP
-  inline bool isContact() { return isConnected() && pingGW(); }
+  inline bool isContact() { return WiFi.isConnected() && ping_.flSuccess; }
 
   // Current RSSI value
   inline int getRssi() { return WiFi.RSSI(); }
 
-  // Statistically smoothed RSSI value
-  inline int getRssiSmooth()
-  {
-    int result;
-    if (isConnected())
-    {
-      smooth_->setValue(getRssi());
-      result = smooth_->getValue();
-    }
-    else
-    {
-      result = getRssi();
-    }
-    return result;
-  }
-
-  inline unsigned long getPeriod() { return status_.timePeriod; }
-  inline unsigned long getEventMillis() { return status_.tsEvent; }
   inline const char *getAddressIp() { return addressIp_; }
   inline const char *getAddressMac() { return addressMac_; }
   inline unsigned int getIdMac() { return idMac_; }
@@ -219,9 +226,9 @@ public:
   {
     return isConnected() ? WiFi.getHostname() : wifi_.hostname;
   };
-  inline String getStatus()
+  inline String getStatus(int status = WiFi.status())
   {
-    switch (WiFi.status())
+    switch (status)
     {
       case WL_IDLE_STATUS:
         return SERIAL_F("Changing between statuses");
@@ -259,6 +266,11 @@ public:
         return SERIAL_F("Incorrect password");
         break;
 #endif
+
+      case -1:
+        return SERIAL_F("Timeout");
+        break;
+
       default:
         return SERIAL_F("Uknown");
         break;
@@ -266,30 +278,23 @@ public:
     return statusText_;
   }
 
-  // Set reconnect period inputed as unsigned long in milliseconds
-  inline void setPeriod(unsigned long period = Timing::PERIOD_CONNECT_DFT)
-  {
-    status_.timePeriod =
-      constrain(period, Timing::PERIOD_CONNECT_MIN, Timing::PERIOD_CONNECT_MAX);
-  }
-  // Set timer period inputed as String in seconds
-  inline void setPeriod(String period)
-  {
-    setPeriod(1000 * (unsigned long)period.toInt());
-  }
-
 private:
+  // Time periods
   enum Timing : unsigned long
   {
     PERIOD_TIMEOUT = 1 * 1000,
-    PERIOD_CONNECT_DFT = 5 * 1000,
-    PERIOD_CONNECT_MIN = 0 * 1000,
-    PERIOD_CONNECT_MAX = 60 * 1000,
+    PERIOD_WAIT = 5 * 1000,
+    PERIOD_RECONNECT = 15 * 1000,
+    PERIOD_PING = 1 * 60 * 1000,
   };
+
+  // General parameters
   enum Params : byte
   {
-    PARAM_SAFETY_WAITS = 30,
+    PARAM_WAITS = 20,
   };
+
+  // Parameters of wifi
   struct Wifi
   {
     const char *ssid;
@@ -301,33 +306,80 @@ private:
     IPAddress primaryDns;
     IPAddress secondaryDns;
   } wifi_;
-  struct Status
+
+  // Parameters of the current connection phase
+  struct Connection
   {
-    unsigned long tsEvent, timeWait;
-    unsigned long timePeriod = Timing::PERIOD_CONNECT_DFT;
-    bool flBegin, flHandlerSuccess;
+    // Number of remaining waits for connecting
     byte waits;
+
+    // Timestamp of the last event
+    unsigned long tsEvent;
+
+    // Flag about waiting for the next connection phase
+    bool flWait;
+
+    // Flag about disconnecting
+    bool flDisconnect;
+
+    // Reset waiting data
+    void reset()
+    {
+      waits = 0;
+      flWait = false;
+    }
+
+    // Initialize the structure
     void init()
     {
-      flBegin = true;
-      flHandlerSuccess = false;
-      timeWait = 0;
-      waits = 0;
+      reset();
+      tsEvent = 0;
     }
-  } status_;
+
+  } connection_;
+
+  // Structure for pinging parameters
+  struct Pinging
+  {
+    // Flag about enabled pinging to the gateway
+    bool flEnabled = true;
+
+    // Success flag about pinging to the gateway
+    bool flSuccess;
+
+    // Timestamp of last ping to the gateway
+    unsigned long tsPing;
+
+    // Period for pinging in milliseconds
+    unsigned long period = Timing::PERIOD_PING;
+
+  } ping_;
+
   char addressIp_[16];
   char addressMac_[18];
   char statusText_[30];
   unsigned int idMac_;
-  gbj_appsmooth<gbj_running, int> *smooth_;
 #if defined(ESP8266)
   WiFiEventHandler onGotIpHandler_, onDisconnectHandler_;
 #endif
+
+  // Connect to wifi procedure
   void connect();
+
+  // Check connection to gateways
+  void check();
+
+  /**
+   * Set the IP address of the MCU as a string.
+   */
   inline void setAddressIp()
   {
     strcpy(addressIp_, WiFi.localIP().toString().c_str());
   }
+
+  /**
+   * Set the MAC address of the MCU as a string.
+   */
   inline void setAddressMac()
   {
     byte mac[6];

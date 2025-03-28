@@ -2,71 +2,71 @@
 
 void gbj_appwifi::connect()
 {
-  if (isConnected())
+  // Wait for reconnection after a while
+  if (connection_.flDisconnect &&
+      millis() - connection_.tsEvent < Timing::PERIOD_RECONNECT)
   {
-    // Also false connection status
     return;
   }
-  /*
-  Right after boot or success handler the wating time is zero, which enables
-  waiting for connect result in the main sketch loop as frequently as determined
-  by timeout.
-  Failure handler sets the wating time, so that mcu waits a while for next
-  attempt to connection after previous attempt failed.
-  */
-  // Waiting for reconnection
-  if (millis() - status_.tsEvent > status_.timeWait)
+
+  // Wait after timout
+  if (connection_.flWait &&
+      millis() - connection_.tsEvent < Timing::PERIOD_WAIT)
   {
-    /*
-    Zeroing waiting time right after delay determined by the failure handler
-    enables waiting for connect result in the main sketch loop as frequently as
-    determined by timeout again.
-    */
-    status_.timeWait = 0;
-    // Start connection
-    if (status_.flBegin)
+    return;
+  }
+
+  // Initiate connection
+  if (connection_.waits == 0)
+  {
+    WiFi.mode(WIFI_STA);
+    WiFi.hostname(wifi_.hostname);
+    WiFi.setAutoReconnect(false);
+    WiFi.persistent(false);
+    if (wifi_.staticIp)
     {
-      /*
-      Resetting begin flag ensures one-time start of wifi connection until
-      succesful connection or failure handler. It enables waiting for connect
-      result in the main sketch loop as frequently as determined by timeout.
-      */
-      status_.flBegin = false;
-      status_.tsEvent = millis();
-      WiFi.mode(WIFI_STA);
-      WiFi.hostname(wifi_.hostname);
-      if (wifi_.staticIp)
-      {
-        WiFi.config(wifi_.staticIp,
-                    wifi_.gateway,
-                    wifi_.subnet,
-                    wifi_.primaryDns,
-                    wifi_.secondaryDns);
-      }
-      SERIAL_VALUE("Connecting to", wifi_.ssid)
-      WiFi.begin(wifi_.ssid, wifi_.pass);
+      WiFi.config(wifi_.staticIp,
+                  wifi_.gateway,
+                  wifi_.subnet,
+                  wifi_.primaryDns,
+                  wifi_.secondaryDns);
     }
-    status_.waits++;
-    SERIAL_VALUE("Waiting", status_.waits)
-    WiFi.waitForConnectResult(Timing::PERIOD_TIMEOUT);
-    if (WiFi.status() == WL_CONNECTED)
+    SERIAL_VALUE("Connecting to", wifi_.ssid)
+    WiFi.begin(wifi_.ssid, wifi_.pass);
+  }
+  connection_.tsEvent = millis();
+  connection_.flWait = true;
+  connection_.flDisconnect = false;
+  connection_.waits++;
+  SERIAL_VALUE("Waitings", connection_.waits)
+  int status = WiFi.waitForConnectResult(Timing::PERIOD_TIMEOUT);
+  SERIAL_VALUE("Status", getStatus(status))
+
+  // Connected successfully
+  if (status == WL_CONNECTED)
+  {
+    return;
+  }
+
+  // All waitings exhausted
+  if (connection_.waits >= Params::PARAM_WAITS)
+  {
+    connectFail();
+  }
+}
+
+void gbj_appwifi::check()
+{
+  // Ping to the AP gateway
+  if (ping_.flEnabled && millis() - ping_.tsPing > ping_.period)
+  {
+    ping_.flSuccess = pingGW();
+    ping_.tsPing = millis();
+    // Disconnect from wifi at false connection
+    if (WiFi.isConnected() && !ping_.flSuccess)
     {
-      /*
-       If there is no success handler implemented in the main sketch, it is
-       simulated.
-      */
-      if (!status_.flHandlerSuccess)
-      {
-        connectSuccess();
-      }
-    }
-    /*
-     If there is no failure handler implemented in the main sketch, the safety
-     counter simulates that handler.
-    */
-    else if (status_.waits >= Params::PARAM_SAFETY_WAITS)
-    {
-      connectFail();
+      SERIAL_TITLE("Disconnect at false connection")
+      WiFi.disconnect();
     }
   }
 }
