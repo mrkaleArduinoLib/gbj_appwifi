@@ -58,7 +58,8 @@ void gbj_appwifi::connect()
 void gbj_appwifi::check()
 {
   // Ping to the AP gateway
-  if (ping_.flEnabled && millis() - ping_.tsPing > ping_.period)
+  if (ping_.flEnabled &&
+      (ping_.tsPing == 0 || millis() - ping_.tsPing > ping_.period))
   {
     ping_.flSuccess = pingGW();
     ping_.tsPing = millis();

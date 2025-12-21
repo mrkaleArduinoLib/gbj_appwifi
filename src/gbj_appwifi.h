@@ -127,7 +127,8 @@ public:
     SERIAL_VALUE("SSID", wifi_.ssid)
     SERIAL_VALUE("Hostname", wifi_.hostname)
     SERIAL_VALUE("RSSI(dBm)", WiFi.RSSI())
-    ping_.tsPing = millis();
+    // Enable immediate pinging
+    ping_.tsPing = 0;
   }
 
   /** Activity at connection failure.
@@ -140,9 +141,9 @@ public:
     SERIAL_VALUE("connectFail()", getStatus())
     connection_.reset();
     connection_.flDisconnect = true;
-    #if defined(ESP8266)
-        WiFi.mode(WIFI_OFF);
-    #endif
+#if defined(ESP8266)
+    WiFi.mode(WIFI_OFF);
+#endif
   }
 
   /** Simple ping to the gateway.
@@ -194,11 +195,11 @@ public:
   // Current pinging period
   inline unsigned long getPeriod() { return ping_.period; }
 
-  // Enable pinging to the gateway
+  // Enable pinging to the gateway immediately
   inline void enablePing()
   {
     ping_.flEnabled = true;
-    ping_.tsPing = millis();
+    ping_.tsPing = 0;
   }
 
   // Disable pinging to the gateway
